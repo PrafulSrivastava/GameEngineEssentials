@@ -4,11 +4,10 @@
 #include "CMouseCtrl.hpp"
 #include "CUtility.hpp"
 
-
 void mouseFunctionTesting()
 {
     auto objMse = std::make_unique<GameEngine::CMouseCtrl>();
-    
+
     auto sharedPtrWindow = std::make_shared<sf::RenderWindow>(
         sf::VideoMode(1000, 1000), "MouseFunctionTestWindow");
 
@@ -26,8 +25,8 @@ void mouseFunctionTesting()
 
     sharedPtrWindow->setFramerateLimit(120);
     while (sharedPtrWindow->isOpen())
-    {        
-        sf::Event event;        
+    {
+        sf::Event event;
         sharedPtrWindow->clear(sf::Color::Black);
 
         while (sharedPtrWindow->pollEvent(event))
@@ -48,9 +47,9 @@ void mouseCtrlTest()
 {
     auto objMse = std::make_unique<GameEngine::CMouseCtrl>();
     objMse->mapKeyToAction(sf::Mouse::Left, []()
-                          { std::cout << "Left click" << std::endl; });
+                           { std::cout << "Left click" << std::endl; });
     objMse->mapKeyToAction(sf::Mouse::Right, []()
-                          { std::cout << "Right click" << std::endl; });
+                           { std::cout << "Right click" << std::endl; });
     auto sharedPtrWindow = std::make_shared<sf::RenderWindow>(
         sf::VideoMode(800, 600), "MouseTestWindow");
 
@@ -64,7 +63,8 @@ void mouseCtrlTest()
             {
                 sharedPtrWindow->close();
             }
-            if (event.type == sf::Event::MouseButtonPressed){
+            if (event.type == sf::Event::MouseButtonPressed)
+            {
                 objMse->executeAction(event.mouseButton.button);
             }
         }
@@ -87,7 +87,7 @@ void keyBoardCtrlTest()
                           { std::cout << "LEFT" << std::endl; });
     objKb->mapKeyToAction(sf::Keyboard::Right, []()
                           { std::cout << "RIGHT" << std::endl; });
-    
+
     while (sharedPtrWindow->isOpen())
     {
         while (sharedPtrWindow->pollEvent(event))
