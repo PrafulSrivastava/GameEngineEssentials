@@ -21,8 +21,8 @@ void mouseFunctionTesting()
     sprite.setScale(0.3f, 0.3f);
     sprite.setPosition(500, 500);
     GameEngine::CUtility::setOriginToCenter(sprite);
-    objMse->lockObjectVisionOnCursor(sprite);
-    
+    auto subId = objMse->lockObjectVisionOnCursor(sprite);
+    objMse->moveObjectToCursor(subId);
 
     sharedPtrWindow->setFramerateLimit(120);
     while (sharedPtrWindow->isOpen())
@@ -37,7 +37,7 @@ void mouseFunctionTesting()
                 sharedPtrWindow->close();
             }
         }
-        objMse->setVisionOnCursor();
+        objMse->followCursor();
 
         sharedPtrWindow->draw(sprite);
         sharedPtrWindow->display();

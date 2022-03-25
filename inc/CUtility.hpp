@@ -29,6 +29,7 @@ namespace GameEngine{
         static float getDistanceBetweenPoints(const sf::Vector2f& p1, const sf::Vector2f& p2);
         static eQuadrantType findQuadrant(const sf::Vector2f& p1, const sf::Vector2f& p2);
         static float angleBetweenTwoPoints(const sf::Vector2f& p1, const sf::Vector2f& p2);
+        static sf::Vector2f getMovementRatio(const sf::Vector2f& p1, const sf::Vector2f& p2);
     }; 
 
     void CUtility::setOriginToCenter(sf::Sprite& sprite)
@@ -68,8 +69,19 @@ namespace GameEngine{
         float base = p2.x - p1.x;
         auto angleRad = atan2f(height, base);        
         auto angleDeg = (180/3.14) * angleRad;
+        
         return angleDeg;
     }
+
+    sf::Vector2f CUtility::getMovementRatio(const sf::Vector2f& p1, const sf::Vector2f& p2)
+    {
+        auto angle = angleBetweenTwoPoints(p1, p2);    
+        float xVel = std::cos(angle);
+        float yVel = std::sin(angle);
+
+        return {xVel, yVel};
+    }
+    
 }
 
 #endif
