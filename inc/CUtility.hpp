@@ -6,6 +6,7 @@
 #include <vector>
 #include <math.h>
 #include "CInputCtrl.hpp"
+#include "Globals.hpp"
 
 namespace GameEngine
 {
@@ -80,7 +81,7 @@ namespace GameEngine
         float height = p2.y - p1.y;
         float base = p2.x - p1.x;
         auto angleRad = atan2f(height, base);
-        auto angleDeg = (180 / 3.14) * angleRad;
+        auto angleDeg = (Utility::TotalDegrees / Utility::Pie) * angleRad;
 
         return angleDeg;
     }

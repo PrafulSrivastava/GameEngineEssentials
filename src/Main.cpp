@@ -20,8 +20,8 @@ void mouseFunctionTesting()
     sprite.setScale(0.3f, 0.3f);
     sprite.setPosition(500, 500);
     GameEngine::CUtility::setOriginToCenter(sprite);
-    auto subId = objMse->lockObjectVisionOnCursor(sprite);
-    objMse->moveObjectToCursor(subId);
+    auto subId = objMse->lockObjectVisionOnMarker(sprite, static_cast<sf::Vector2f>(sf::Mouse::getPosition()));
+    objMse->moveObjectToMarker(subId);
 
     sharedPtrWindow->setFramerateLimit(120);
     while (sharedPtrWindow->isOpen())
@@ -36,7 +36,8 @@ void mouseFunctionTesting()
                 sharedPtrWindow->close();
             }
         }
-        objMse->followCursor();
+        objMse->setMarkerPos(subId, static_cast<sf::Vector2f>(sf::Mouse::getPosition()));
+        objMse->runMainLoop();
 
         sharedPtrWindow->draw(sprite);
         sharedPtrWindow->display();

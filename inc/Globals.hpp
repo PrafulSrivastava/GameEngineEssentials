@@ -3,9 +3,10 @@
 
 namespace GameEngine
 {
-    namespace MouseCtrl
+    namespace Utility
     {
-
+        constexpr auto TotalDegrees = 180;
+        constexpr auto Pie = 3.14;
     }
 }
 

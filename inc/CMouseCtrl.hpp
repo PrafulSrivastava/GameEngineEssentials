@@ -32,48 +32,49 @@ namespace GameEngine
         void unlockObjectOnClick(sf::Sprite &);
         // unlock objects from a click hold
         void unlockObjectOnHoldRelease(sf::Sprite &);
-        // make a sprite's vision cone follow mouse cursor
-        uint8_t lockObjectVisionOnCursor(sf::Sprite &);
-        // make a sprite's vision cone unfollow mouse cursor
-        void unlockObjectVisionOnCursor(uint8_t);
-        // make a sprite move to mouse cursor
-        void moveObjectToCursor(uint8_t subId);
-        // stop a sprite moving towards mouse cursor
-        void stopChasingCursor(uint8_t subId);
+        // make a sprite's vision cone follow mouse marker
+        uint8_t lockObjectVisionOnMarker(sf::Sprite &, sf::Vector2f);
+        // make a sprite's vision cone unfollow mouse marker
+        void unlockObjectVisionOnMarker(uint8_t);
+        // make a sprite move to mouse marker
+        void moveObjectToMarker(uint8_t subId);
+        // stop a sprite moving towards mouse marker
+        void stopChasingMarker(uint8_t subId);
         // 3d left-right-up-down follow mouse
-        void followCursor();
+        void runMainLoop();
+        void setMarkerPos(uint8_t, sf::Vector2f);
 
     private:
         float getDistanceBetweenPoints(const sf::Vector2f &p1, const sf::Vector2f &p2);
         float angleBetweenTwoPoints(const sf::Vector2f &p1, const sf::Vector2f &p2);
         uint8_t findQuadrant(const sf::Vector2f &p1, const sf::Vector2f &p2);
 
-        std::vector<bool> m_followCursor;
-        std::vector<bool> m_moveToCursor;
+        std::vector<bool> m_followMarker;
+        std::vector<bool> m_moveToMarker;
+        std::vector<sf::Vector2f> m_markerPos;
         std::vector<std::reference_wrapper<sf::Sprite>> m_sprites;
-        int8_t m_followCursorSubId{-1};
+        int8_t m_followMarkerSubId{-1};
     };
 
-    void CMouseCtrl::followCursor()
+    void CMouseCtrl::runMainLoop()
     {
 
         uint8_t index = 0;
-        auto mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition());
 
         for (auto spriteRefWrap : m_sprites)
         {
-
-            if (m_followCursor[index])
+            auto markerPos = m_markerPos[index];
+            if (m_followMarker[index])
             {
                 auto spritePos = spriteRefWrap.get().getPosition();
-                auto angle = CUtility::angleBetweenTwoPoints(spritePos, mousePos);
+                auto angle = CUtility::angleBetweenTwoPoints(spritePos, markerPos);
                 spriteRefWrap.get().setRotation(angle);
-                if (m_moveToCursor[index])
+                if (m_moveToMarker[index])
                 {
 
-                    if (spritePos != mousePos)
+                    if (spritePos != markerPos)
                     {
-                        auto ratio = CUtility::getMovementRatio(spritePos, mousePos);
+                        auto ratio = CUtility::getMovementRatio(spritePos, markerPos);
                         spriteRefWrap.get().setPosition(spritePos.x + ratio.x, spritePos.y + ratio.y);
                     }
                 }
@@ -81,30 +82,37 @@ namespace GameEngine
         }
     }
 
-    uint8_t CMouseCtrl::lockObjectVisionOnCursor(sf::Sprite &sprite)
+    uint8_t CMouseCtrl::lockObjectVisionOnMarker(sf::Sprite &sprite, sf::Vector2f makerPos)
     {
-        m_followCursorSubId++;
-        m_followCursor.push_back(true);
-        m_moveToCursor.push_back(false);
+        m_followMarkerSubId++;
+        m_followMarker.push_back(true);
+        m_moveToMarker.push_back(false);
+        m_markerPos.push_back(makerPos);
         m_sprites.push_back(std::ref(sprite));
 
-        return m_followCursorSubId;
+        return m_followMarkerSubId;
     }
 
-    void CMouseCtrl::unlockObjectVisionOnCursor(uint8_t subId)
+    void CMouseCtrl::unlockObjectVisionOnMarker(uint8_t subId)
     {
-        m_followCursor[subId] = false;
+        m_followMarker[subId] = false;
     }
 
-    void CMouseCtrl::moveObjectToCursor(uint8_t subId)
+    void CMouseCtrl::moveObjectToMarker(uint8_t subId)
     {
-        m_moveToCursor[subId] = true;
+        m_moveToMarker[subId] = true;
     }
 
-    void CMouseCtrl::stopChasingCursor(uint8_t subId)
+    void CMouseCtrl::stopChasingMarker(uint8_t subId)
     {
-        m_moveToCursor[subId] = false;
+        m_moveToMarker[subId] = false;
     }
+
+    void CMouseCtrl::setMarkerPos(uint8_t subId, sf::Vector2f markerPos)
+    {
+        m_markerPos[subId] = markerPos;
+    }
+
 }
 
 #endif
