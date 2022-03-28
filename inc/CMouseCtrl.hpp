@@ -11,10 +11,10 @@
 
 namespace GameEngine
 {
+    using ParamType = uint8_t;
+    using Action = std::function<void(ParamType)>;
 
-    using Action = std::function<void()>;
-
-    class CMouseCtrl : public CInputCtrl<sf::Mouse::Button, Action>
+    class CMouseCtrl : public CInputCtrl<sf::Mouse::Button, Action, ParamType>
     {
     public:
         CMouseCtrl() = default;
@@ -37,11 +37,12 @@ namespace GameEngine
         // make a sprite's vision cone unfollow mouse marker
         void unlockObjectVisionOnMarker(uint8_t);
         // make a sprite move to mouse marker
-        void moveObjectToMarker(uint8_t subId);
+        void chaseMarker(uint8_t subId);
         // stop a sprite moving towards mouse marker
         void stopChasingMarker(uint8_t subId);
-        // 3d left-right-up-down follow mouse
+        // Begin the main loop
         void runMainLoop();
+        // Set Marker pos for a subscriber
         void setMarkerPos(uint8_t, sf::Vector2f);
 
     private:
@@ -53,7 +54,7 @@ namespace GameEngine
         std::vector<bool> m_moveToMarker;
         std::vector<sf::Vector2f> m_markerPos;
         std::vector<std::reference_wrapper<sf::Sprite>> m_sprites;
-        int8_t m_followMarkerSubId{-1};
+        int8_t m_followMarkerSubId{InvalidIndex};
     };
 
     void CMouseCtrl::runMainLoop()
@@ -98,7 +99,7 @@ namespace GameEngine
         m_followMarker[subId] = false;
     }
 
-    void CMouseCtrl::moveObjectToMarker(uint8_t subId)
+    void CMouseCtrl::chaseMarker(uint8_t subId)
     {
         m_moveToMarker[subId] = true;
     }

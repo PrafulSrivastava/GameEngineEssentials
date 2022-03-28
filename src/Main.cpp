@@ -1,12 +1,13 @@
 #include <iostream>
 #include <memory>
+#include <functional>
 #include "CKeyboardCtrl.hpp"
 #include "CMouseCtrl.hpp"
 #include "CUtility.hpp"
 
 void mouseFunctionTesting()
 {
-    auto objMse = std::make_unique<GameEngine::CMouseCtrl>();
+    auto objMse = std::make_shared<GameEngine::CMouseCtrl>();
 
     auto sharedPtrWindow = std::make_shared<sf::RenderWindow>(
         sf::VideoMode(1000, 1000), "MouseFunctionTestWindow");
@@ -21,7 +22,12 @@ void mouseFunctionTesting()
     sprite.setPosition(500, 500);
     GameEngine::CUtility::setOriginToCenter(sprite);
     auto subId = objMse->lockObjectVisionOnMarker(sprite, static_cast<sf::Vector2f>(sf::Mouse::getPosition()));
-    objMse->moveObjectToMarker(subId);
+
+    auto fptrLeftClick = std::bind(&GameEngine::CMouseCtrl::chaseMarker, objMse, std::placeholders::_1);
+    objMse->mapKeyToAction(sf::Mouse::Left, fptrLeftClick, subId);
+
+    auto fptrRightClick = std::bind(&GameEngine::CMouseCtrl::stopChasingMarker, objMse, std::placeholders::_1);
+    objMse->mapKeyToAction(sf::Mouse::Right, fptrRightClick, subId);
 
     sharedPtrWindow->setFramerateLimit(120);
     while (sharedPtrWindow->isOpen())
@@ -35,6 +41,10 @@ void mouseFunctionTesting()
             {
                 sharedPtrWindow->close();
             }
+            if (event.type == sf::Event::MouseButtonPressed)
+            {
+                objMse->executeAction(event.mouseButton.button);
+            }
         }
         objMse->setMarkerPos(subId, static_cast<sf::Vector2f>(sf::Mouse::getPosition()));
         objMse->runMainLoop();
@@ -47,10 +57,14 @@ void mouseFunctionTesting()
 void mouseCtrlTest()
 {
     auto objMse = std::make_unique<GameEngine::CMouseCtrl>();
-    objMse->mapKeyToAction(sf::Mouse::Left, []()
-                           { std::cout << "Left click" << std::endl; });
-    objMse->mapKeyToAction(sf::Mouse::Right, []()
-                           { std::cout << "Right click" << std::endl; });
+    objMse->mapKeyToAction(
+        sf::Mouse::Left, [](uint8_t)
+        { std::cout << "Left click" << std::endl; },
+        0);
+    objMse->mapKeyToAction(
+        sf::Mouse::Right, [](uint8_t)
+        { std::cout << "Right click" << std::endl; },
+        0);
     auto sharedPtrWindow = std::make_shared<sf::RenderWindow>(
         sf::VideoMode(800, 600), "MouseTestWindow");
 
@@ -80,14 +94,22 @@ void keyBoardCtrlTest()
 
     sf::Event event;
     sharedPtrWindow->setFramerateLimit(120);
-    objKb->mapKeyToAction(sf::Keyboard::Up, []()
-                          { std::cout << "UP" << std::endl; });
-    objKb->mapKeyToAction(sf::Keyboard::Up, []()
-                          { std::cout << "DOWN" << std::endl; });
-    objKb->mapKeyToAction(sf::Keyboard::Left, []()
-                          { std::cout << "LEFT" << std::endl; });
-    objKb->mapKeyToAction(sf::Keyboard::Right, []()
-                          { std::cout << "RIGHT" << std::endl; });
+    objKb->mapKeyToAction(
+        sf::Keyboard::Up, [](uint8_t)
+        { std::cout << "UP" << std::endl; },
+        0);
+    objKb->mapKeyToAction(
+        sf::Keyboard::Up, [](uint8_t)
+        { std::cout << "DOWN" << std::endl; },
+        0);
+    objKb->mapKeyToAction(
+        sf::Keyboard::Left, [](uint8_t)
+        { std::cout << "LEFT" << std::endl; },
+        0);
+    objKb->mapKeyToAction(
+        sf::Keyboard::Right, [](uint8_t)
+        { std::cout << "RIGHT" << std::endl; },
+        0);
 
     while (sharedPtrWindow->isOpen())
     {

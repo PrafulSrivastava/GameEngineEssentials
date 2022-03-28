@@ -16,7 +16,7 @@ namespace GameEngine
 
     constexpr auto InvalidIndex = -1;
 
-    template <typename Key, typename Action, eKeyBindingType Binding = eKeyBindingType::oneToOne>
+    template <typename Key, typename Action, typename Parameter, eKeyBindingType Binding = eKeyBindingType::oneToOne>
     class CInputCtrl
     {
     public:
@@ -27,47 +27,47 @@ namespace GameEngine
         CInputCtrl(CInputCtrl &&) = delete;
         CInputCtrl &operator=(CInputCtrl &&) = delete;
 
-        void mapKeyToAction(Key, Action);
+        void mapKeyToAction(Key, Action, Parameter);
         void executeAction(const Key &);
 
     private:
         int8_t getIndexOfKey(const Key &key);
 
         std::vector<Key> m_keys;
-        std::vector<std::vector<Action>> m_callbcks;
+        std::vector<std::vector<std::pair<Action, Parameter>>> m_callbcks;
         uint8_t m_keyIndex{0};
     };
 
-    template <typename Key, typename Action, eKeyBindingType Binding>
-    void CInputCtrl<Key, Action, Binding>::mapKeyToAction(Key key, Action callback)
+    template <typename Key, typename Action, typename Parameter, eKeyBindingType Binding>
+    void CInputCtrl<Key, Action, Parameter, Binding>::mapKeyToAction(Key key, Action callback, Parameter param)
     {
         auto index = getIndexOfKey(key);
         if (index == InvalidIndex)
         {
             m_keys.push_back(std::move(key));
-            m_callbcks.push_back({std::move(callback)});
+            m_callbcks.push_back({{callback, param}});
             m_keyIndex++;
         }
         else if (Binding != eKeyBindingType::oneToOne)
         {
-            m_callbcks[index].push_back(std::move(callback));
+            m_callbcks[index].push_back({callback, param});
         }
     }
 
-    template <typename Key, typename Action, eKeyBindingType Binding>
-    void CInputCtrl<Key, Action, Binding>::executeAction(const Key &key)
+    template <typename Key, typename Action, typename Parameter, eKeyBindingType Binding>
+    void CInputCtrl<Key, Action, Parameter, Binding>::executeAction(const Key &key)
     {
         auto index = getIndexOfKey(key);
         if (index == InvalidIndex)
         {
             return;
         }
-        std::for_each(m_callbcks[index].cbegin(), m_callbcks[index].cend(), [&](const Action &callback)
-                      { callback(); });
+        std::for_each(m_callbcks[index].cbegin(), m_callbcks[index].cend(), [&](const std::pair<Action, Parameter> &callbackPair)
+                      { callbackPair.first(callbackPair.second); });
     }
 
-    template <typename Key, typename Action, eKeyBindingType Binding>
-    int8_t CInputCtrl<Key, Action, Binding>::getIndexOfKey(const Key &key)
+    template <typename Key, typename Action, typename Parameter, eKeyBindingType Binding>
+    int8_t CInputCtrl<Key, Action, Parameter, Binding>::getIndexOfKey(const Key &key)
     {
         auto itr = std::find(m_keys.cbegin(), m_keys.cend(), key);
         if (itr != m_keys.cend())
