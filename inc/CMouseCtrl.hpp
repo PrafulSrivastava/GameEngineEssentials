@@ -8,10 +8,11 @@
 #include <thread>
 #include "CInputCtrl.hpp"
 #include "CUtility.hpp"
+#include "CSpriteWrapper.hpp"
 
 namespace GameEngine
 {
-    using ParamType = uint8_t;
+    using ParamType = int32_t;
     using Action = std::function<void(ParamType)>;
 
     class CMouseCtrl : public CInputCtrl<sf::Mouse::Button, Action, ParamType>
@@ -24,94 +25,153 @@ namespace GameEngine
         CMouseCtrl(CMouseCtrl &&) = delete;
         CMouseCtrl &operator=(CMouseCtrl &&) = delete;
 
-        // lock objects with a click
-        void lockObjectOnClick(sf::Sprite &);
-        // lock objects with a click hold
-        void lockObjectOnClickTillHold(sf::Sprite &);
-        // unlock objects from a click
-        void unlockObjectOnClick(sf::Sprite &);
-        // unlock objects from a click hold
-        void unlockObjectOnHoldRelease(sf::Sprite &);
-        // make a sprite's vision cone follow mouse marker
-        uint8_t lockObjectVisionOnMarker(sf::Sprite &, sf::Vector2f);
-        // make a sprite's vision cone unfollow mouse marker
-        void unlockObjectVisionOnMarker(uint8_t);
-        // make a sprite move to mouse marker
-        void chaseMarker(uint8_t subId);
-        // stop a sprite moving towards mouse marker
-        void stopChasingMarker(uint8_t subId);
+        // add sprite to list and monitor it.
+        [[nodiscard]] int32_t subscribeToMouseCtrl(CSpriteWrapper &);
+        // remove sprite from monitor list
+        void unsubscribe(int32_t subId);
         // Begin the main loop
         void runMainLoop();
+        // lock objects with a click
+        void lockObjectOnClick(int32_t subId);
+        // lock objects with a click hold
+        void lockObjectOnClickTillHold(int32_t subId);
+        // unlock objects from a click
+        void unlockObjectOnClick(int32_t);
+        // unlock objects from a click hold
+        void unlockObjectOnHoldRelease(int32_t);
+        // make a sprite's vision cone follow mouse marker
+        void lockObjectVisionOnMarker(int32_t, sf::Vector2f);
+        // make a sprite's vision cone unfollow mouse marker
+        void unlockObjectVisionOnMarker(int32_t);
+        // make a sprite move to mouse marker
+        void chaseMarker(int32_t);
+        // stop a sprite moving towards mouse marker
+        void stopChasingMarker(int32_t);
         // Set Marker pos for a subscriber
-        void setMarkerPos(uint8_t, sf::Vector2f);
+        void setMarkerPos(int32_t, sf::Vector2f);
 
     private:
         float getDistanceBetweenPoints(const sf::Vector2f &p1, const sf::Vector2f &p2);
         float angleBetweenTwoPoints(const sf::Vector2f &p1, const sf::Vector2f &p2);
-        uint8_t findQuadrant(const sf::Vector2f &p1, const sf::Vector2f &p2);
+        int32_t findQuadrant(const sf::Vector2f &p1, const sf::Vector2f &p2);
+        int32_t getSpriteIndex(int32_t);
 
         std::vector<bool> m_followMarker;
+        std::vector<bool> m_lockOnCursor;
         std::vector<bool> m_moveToMarker;
         std::vector<sf::Vector2f> m_markerPos;
-        std::vector<std::reference_wrapper<sf::Sprite>> m_sprites;
-        int8_t m_followMarkerSubId{InvalidIndex};
+        std::vector<std::reference_wrapper<CSpriteWrapper>> m_sprites;
+        int32_t m_followMarkerSubId{InvalidIndex};
     };
+
+    int32_t CMouseCtrl::subscribeToMouseCtrl(CSpriteWrapper &sprite)
+    {
+        if (getSpriteIndex(sprite.getSpriteId()) == InvalidIndex)
+        {
+            m_followMarkerSubId++;
+            m_followMarker.push_back(false);
+            m_lockOnCursor.push_back(false);
+            m_moveToMarker.push_back(false);
+            m_markerPos.push_back({0, 0});
+            m_sprites.push_back(std::ref(sprite));
+
+            return m_followMarkerSubId;
+        }
+
+        return InvalidIndex;
+    }
+
+    void CMouseCtrl::unsubscribe(int32_t subId)
+    {
+        stopChasingMarker(subId);
+        unlockObjectVisionOnMarker(subId);
+        unlockObjectOnClick(subId);
+    }
 
     void CMouseCtrl::runMainLoop()
     {
-
-        uint8_t index = 0;
+        int32_t index = 0;
 
         for (auto spriteRefWrap : m_sprites)
         {
             auto markerPos = m_markerPos[index];
             if (m_followMarker[index])
             {
-                auto spritePos = spriteRefWrap.get().getPosition();
-                auto angle = CUtility::angleBetweenTwoPoints(spritePos, markerPos);
-                spriteRefWrap.get().setRotation(angle);
-                if (m_moveToMarker[index])
+                if (m_lockOnCursor[index])
+                {
+                    spriteRefWrap.get().setPosition(CUtility::getMarkerCoordinatesWrtWindow(static_cast<sf::Vector2f>(sf::Mouse::getPosition())));
+                }
+                else
                 {
 
-                    if (spritePos != markerPos)
+                    auto spritePos = spriteRefWrap.get().getPosition();
+                    auto angle = CUtility::angleBetweenTwoPoints(spritePos, markerPos);
+                    spriteRefWrap.get().setRotation(angle);
+                    if (m_moveToMarker[index])
                     {
-                        auto ratio = CUtility::getMovementRatio(spritePos, markerPos);
-                        spriteRefWrap.get().setPosition(spritePos.x + ratio.x, spritePos.y + ratio.y);
+
+                        if (spritePos != markerPos)
+                        {
+                            auto ratio = CUtility::getMovementRatio(spritePos, markerPos);
+                            spriteRefWrap.get().setPosition(spritePos.x + ratio.x, spritePos.y + ratio.y);
+                        }
                     }
                 }
             }
         }
     }
 
-    uint8_t CMouseCtrl::lockObjectVisionOnMarker(sf::Sprite &sprite, sf::Vector2f makerPos)
+    int32_t CMouseCtrl::getSpriteIndex(int32_t id)
     {
-        m_followMarkerSubId++;
-        m_followMarker.push_back(true);
-        m_moveToMarker.push_back(false);
-        m_markerPos.push_back(makerPos);
-        m_sprites.push_back(std::ref(sprite));
+        for (auto i{0}; i < m_sprites.size(); i++)
+        {
+            if (m_sprites[i].get().getSpriteId() == id)
+            {
+                return i;
+            }
+        }
 
-        return m_followMarkerSubId;
+        return -1;
     }
 
-    void CMouseCtrl::unlockObjectVisionOnMarker(uint8_t subId)
+    void CMouseCtrl::lockObjectOnClick(int32_t subId)
+    {
+
+        if (CUtility::isMarkerOnElement(m_sprites[subId].get(), static_cast<sf::Vector2f>(sf::Mouse::getPosition())))
+        {
+            m_lockOnCursor[subId] = true;
+        }
+    }
+
+    void CMouseCtrl::lockObjectVisionOnMarker(int32_t subId, sf::Vector2f markerPos)
+    {
+        m_followMarker[subId] = true;
+        m_markerPos[subId] = markerPos;
+    }
+
+    void CMouseCtrl::unlockObjectVisionOnMarker(int32_t subId)
     {
         m_followMarker[subId] = false;
     }
 
-    void CMouseCtrl::chaseMarker(uint8_t subId)
+    void CMouseCtrl::chaseMarker(int32_t subId)
     {
         m_moveToMarker[subId] = true;
     }
 
-    void CMouseCtrl::stopChasingMarker(uint8_t subId)
+    void CMouseCtrl::stopChasingMarker(int32_t subId)
     {
         m_moveToMarker[subId] = false;
     }
 
-    void CMouseCtrl::setMarkerPos(uint8_t subId, sf::Vector2f markerPos)
+    void CMouseCtrl::setMarkerPos(int32_t subId, sf::Vector2f markerPos)
     {
         m_markerPos[subId] = markerPos;
+    }
+
+    void CMouseCtrl::unlockObjectOnClick(int32_t subId)
+    {
+        m_lockOnCursor[subId] = false;
     }
 
 }

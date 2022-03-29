@@ -8,13 +8,13 @@
 namespace GameEngine
 {
 
-    enum class eKeyBindingType : uint8_t
+    enum class eKeyBindingType : int32_t
     {
         oneToOne = 1,
         manyToOne
     };
 
-    constexpr auto InvalidIndex = -1;
+    constexpr int32_t InvalidIndex = -1;
 
     template <typename Key, typename Action, typename Parameter, eKeyBindingType Binding = eKeyBindingType::oneToOne>
     class CInputCtrl
@@ -28,14 +28,15 @@ namespace GameEngine
         CInputCtrl &operator=(CInputCtrl &&) = delete;
 
         void mapKeyToAction(Key, Action, Parameter);
+        void freeUpKey(Key);
         void executeAction(const Key &);
 
     private:
-        int8_t getIndexOfKey(const Key &key);
+        int32_t getIndexOfKey(const Key &key);
 
         std::vector<Key> m_keys;
         std::vector<std::vector<std::pair<Action, Parameter>>> m_callbcks;
-        uint8_t m_keyIndex{0};
+        int32_t m_keyIndex{0};
     };
 
     template <typename Key, typename Action, typename Parameter, eKeyBindingType Binding>
@@ -48,7 +49,7 @@ namespace GameEngine
             m_callbcks.push_back({{callback, param}});
             m_keyIndex++;
         }
-        else if (Binding != eKeyBindingType::oneToOne)
+        else if (Binding != eKeyBindingType::oneToOne || m_callbcks[index].size() == 0)
         {
             m_callbcks[index].push_back({callback, param});
         }
@@ -67,7 +68,7 @@ namespace GameEngine
     }
 
     template <typename Key, typename Action, typename Parameter, eKeyBindingType Binding>
-    int8_t CInputCtrl<Key, Action, Parameter, Binding>::getIndexOfKey(const Key &key)
+    int32_t CInputCtrl<Key, Action, Parameter, Binding>::getIndexOfKey(const Key &key)
     {
         auto itr = std::find(m_keys.cbegin(), m_keys.cend(), key);
         if (itr != m_keys.cend())
@@ -77,6 +78,15 @@ namespace GameEngine
         else
         {
             return InvalidIndex;
+        }
+    }
+    template <typename Key, typename Action, typename Parameter, eKeyBindingType Binding>
+    void CInputCtrl<Key, Action, Parameter, Binding>::freeUpKey(Key key)
+    {
+        auto index = getIndexOfKey(key);
+        if (index != InvalidIndex)
+        {
+            m_callbcks[index].clear();
         }
     }
 }

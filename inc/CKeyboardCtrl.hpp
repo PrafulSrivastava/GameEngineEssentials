@@ -8,7 +8,7 @@
 
 namespace GameEngine
 {
-    using ParamType = uint8_t;
+    using ParamType = int32_t;
     using Action = std::function<void(ParamType)>;
     class CKeyboardCtrl : public CInputCtrl<sf::Keyboard::Key, Action, ParamType>
     {
