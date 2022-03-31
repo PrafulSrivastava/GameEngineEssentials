@@ -21,6 +21,13 @@ namespace GameEngine
     };
 
     const double Pi = std::acos(-1);
+    struct Component
+    {
+        Component(float x, float y, float z) : xComponent(x), yComponent(y), zComponent(z) {}
+        Component() {}
+        float xComponent, yComponent, zComponent;
+    };
+
     class CUtility
     {
     public:
@@ -49,6 +56,9 @@ namespace GameEngine
         static float radsToDeg(float);
         static eQuadrantType getQuadrantAfterReflection(float, float);
         static float getAngleForQuadrant(float, eQuadrantType);
+        static Component getComponent(float Magnitude, float thetaXY, float thetaZ, Component origin);
+        static bool Compare(float, float);
+        static bool Compare(sf::Vector2f P1, sf::Vector2f P2);
 
     private:
         static int32_t globalElementCount;
@@ -65,7 +75,7 @@ namespace GameEngine
 
     void CUtility::setOriginToCenter(sf::Sprite &sprite)
     {
-        sf::FloatRect gb = sprite.getGlobalBounds();
+        sf::FloatRect gb = sprite.getLocalBounds();
         sprite.setOrigin(gb.width / 2, gb.height / 2);
     }
 
@@ -203,6 +213,20 @@ namespace GameEngine
         }
     }
 
+    Component CUtility::getComponent(float Magnitude, float thetaXY, float thetaZ, Component origin = Component(0, 0, 0))
+    {
+        return Component(Magnitude * sin(degToRads(thetaZ)) * cos(degToRads(thetaXY)) + origin.xComponent, Magnitude * sin(degToRads(thetaZ)) * sin(degToRads(thetaXY)) + origin.yComponent, Magnitude * cos(degToRads(thetaZ)) + origin.zComponent);
+    }
+
+    bool CUtility::Compare(float p1, float p2)
+    {
+        return abs(ceil(p2) - ceil(p1)) <= Utility::ComparisonThreshold;
+    }
+
+    bool CUtility::Compare(sf::Vector2f P1, sf::Vector2f P2)
+    {
+        return P1.x == P2.x && P1.y == P2.y;
+    }
 }
 
 #endif
