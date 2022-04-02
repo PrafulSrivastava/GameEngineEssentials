@@ -11,14 +11,16 @@
 namespace GameEngine
 {
 
-    enum eQuadrantType : int32_t
+    enum eQuadrantType : uint8_t
     {
         eFirst = 0,
         eSecond,
         eThird,
         eFourth,
+        eUnknown = 120,
     };
 
+    const double Pi = std::acos(-1);
     class CUtility
     {
     public:
@@ -31,16 +33,22 @@ namespace GameEngine
 
         static void setWindow(std::shared_ptr<sf::RenderWindow>);
         static void setOriginToCenter(sf::Sprite &);
+        static sf::Vector2f getCentreForShape(sf::FloatRect);
         static sf::Vector2f getMouseCoordinatesWrtWindow();
         static sf::Vector2f getTransformationRatioForWindow();
         static sf::Vector2f getMarkerCoordinatesWrtWindow(sf::Vector2f);
         static bool isMarkerOnElement(sf::Sprite &, sf::Vector2f);
         static float getDistanceBetweenPoints(const sf::Vector2f &, const sf::Vector2f &);
-        static eQuadrantType findQuadrant(const sf::Vector2f &, const sf::Vector2f &);
+        static eQuadrantType findQuadrant(float angle);
         static float angleBetweenTwoPoints(const sf::Vector2f &, const sf::Vector2f &);
         static sf::Vector2f getMovementRatio(const sf::Vector2f &, const sf::Vector2f &);
+        static sf::Vector2f getMovementRatio(double);
         static int32_t getElementCount();
         static int32_t getFreshElementId();
+        static float degToRads(float);
+        static float radsToDeg(float);
+        static eQuadrantType getQuadrantAfterReflection(float, float);
+        static float getAngleForQuadrant(float, eQuadrantType);
 
     private:
         static int32_t globalElementCount;
@@ -57,8 +65,13 @@ namespace GameEngine
 
     void CUtility::setOriginToCenter(sf::Sprite &sprite)
     {
-        sf::FloatRect gb = sprite.getLocalBounds();
+        sf::FloatRect gb = sprite.getGlobalBounds();
         sprite.setOrigin(gb.width / 2, gb.height / 2);
+    }
+
+    sf::Vector2f CUtility::getCentreForShape(sf::FloatRect gb)
+    {
+        return {gb.width / 2, gb.height / 2};
     }
 
     sf::Vector2f CUtility::getMouseCoordinatesWrtWindow()
@@ -92,33 +105,34 @@ namespace GameEngine
         return std::sqrt(std::pow((p2.x - p1.x), 2) + std::pow((p2.y - p1.y), 2));
     }
 
-    eQuadrantType CUtility::findQuadrant(const sf::Vector2f &p1, const sf::Vector2f &p2)
+    eQuadrantType CUtility::findQuadrant(float angle)
     {
-        auto x = p1.x - p2.x;
-        auto y = p1.y - p2.y;
-
+        float x = std::cos(degToRads(angle));
+        float y = std::sin(degToRads(angle));
+        auto quadrant = eQuadrantType::eUnknown;
         if (y >= 0)
         {
             if (x >= 0)
             {
-                return eQuadrantType::eFirst;
+                quadrant = eQuadrantType::eFirst;
             }
             else
             {
-                return eQuadrantType::eSecond;
+                quadrant = eQuadrantType::eSecond;
             }
         }
         else
         {
             if (x >= 0)
             {
-                return eQuadrantType::eThird;
+                quadrant = eQuadrantType::eThird;
             }
             else
             {
-                return eQuadrantType::eFourth;
+                quadrant = eQuadrantType::eFourth;
             }
         }
+        return quadrant;
     }
 
     float CUtility::angleBetweenTwoPoints(const sf::Vector2f &p1, const sf::Vector2f &p2)
@@ -126,16 +140,35 @@ namespace GameEngine
         float height = p2.y - p1.y;
         float base = p2.x - p1.x;
         auto angleRad = atan2f(height, base);
-        auto angleDeg = (Utility::TotalDegrees / Utility::Pie) * angleRad;
+        auto angleDeg = radsToDeg(angleRad);
 
         return angleDeg;
+    }
+
+    float CUtility::degToRads(float deg)
+    {
+        return (Pi / (Utility::TotalDegrees / 2)) * deg;
+    }
+
+    float CUtility::radsToDeg(float rads)
+    {
+        return ((Utility::TotalDegrees / 2) / Pi) * rads;
     }
 
     sf::Vector2f CUtility::getMovementRatio(const sf::Vector2f &p1, const sf::Vector2f &p2)
     {
         auto angle = angleBetweenTwoPoints(p1, p2);
+
         float xVel = std::cos(angle);
         float yVel = std::sin(angle);
+
+        return {xVel, yVel};
+    }
+
+    sf::Vector2f CUtility::getMovementRatio(double angle)
+    {
+        float xVel = std::cos(degToRads(angle));
+        float yVel = std::sin(degToRads(angle));
 
         return {xVel, yVel};
     }
@@ -148,6 +181,26 @@ namespace GameEngine
     int32_t CUtility::getFreshElementId()
     {
         return ++globalElementCount;
+    }
+
+    eQuadrantType CUtility::getQuadrantAfterReflection(float angleObject1, float angleObject2)
+    {
+        return findQuadrant(std::abs(angleObject1 - angleObject2));
+    }
+
+    float CUtility::getAngleForQuadrant(float angle, eQuadrantType type)
+    {
+        switch (type)
+        {
+        case eQuadrantType::eFirst:
+            return angle;
+        case eQuadrantType::eSecond:
+            return (Utility::TotalDegrees / 2) - angle;
+        case eQuadrantType::eThird:
+            return angle - (Utility::TotalDegrees / 2);
+        case eQuadrantType::eFourth:
+            return angle * (-1);
+        }
     }
 
 }

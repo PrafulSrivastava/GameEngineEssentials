@@ -8,14 +8,14 @@
 #include <thread>
 #include "CInputCtrl.hpp"
 #include "CUtility.hpp"
-#include "CSpriteWrapper.hpp"
+#include "CEntityWrapper.hpp"
 
 namespace GameEngine
 {
-    using ParamType = int32_t;
-    using Action = std::function<void(ParamType)>;
-
-    class CMouseCtrl : public CInputCtrl<sf::Mouse::Button, Action, ParamType>
+    using MouseParamType = int32_t;
+    using MouseAction = std::function<void(MouseParamType)>;
+    using Entity = CEntityWrapper<sf::Sprite>;
+    class CMouseCtrl : public CInputCtrl<sf::Mouse::Button, MouseAction, MouseParamType>
     {
     public:
         CMouseCtrl() = default;
@@ -26,7 +26,7 @@ namespace GameEngine
         CMouseCtrl &operator=(CMouseCtrl &&) = delete;
 
         // add sprite to list and monitor it.
-        [[nodiscard]] int32_t subscribeToMouseCtrl(CSpriteWrapper &);
+        [[nodiscard]] int32_t subscribeToMouseCtrl(Entity &);
         // remove sprite from monitor list
         void unsubscribe(int32_t subId);
         // Begin the main loop
@@ -60,13 +60,13 @@ namespace GameEngine
         std::vector<bool> m_lockOnCursor;
         std::vector<bool> m_moveToMarker;
         std::vector<sf::Vector2f> m_markerPos;
-        std::vector<std::reference_wrapper<CSpriteWrapper>> m_sprites;
+        std::vector<std::reference_wrapper<Entity>> m_sprites;
         int32_t m_followMarkerSubId{InvalidIndex};
     };
 
-    int32_t CMouseCtrl::subscribeToMouseCtrl(CSpriteWrapper &sprite)
+    int32_t CMouseCtrl::subscribeToMouseCtrl(Entity &sprite)
     {
-        if (getSpriteIndex(sprite.getSpriteId()) == InvalidIndex)
+        if (getSpriteIndex(sprite.getEntityId()) == InvalidIndex)
         {
             m_followMarkerSubId++;
             m_followMarker.push_back(false);
@@ -125,7 +125,7 @@ namespace GameEngine
     {
         for (auto i{0}; i < m_sprites.size(); i++)
         {
-            if (m_sprites[i].get().getSpriteId() == id)
+            if (m_sprites[i].get().getEntityId() == id)
             {
                 return i;
             }
@@ -136,7 +136,6 @@ namespace GameEngine
 
     void CMouseCtrl::lockObjectOnClick(int32_t subId)
     {
-
         if (CUtility::isMarkerOnElement(m_sprites[subId].get(), static_cast<sf::Vector2f>(sf::Mouse::getPosition())))
         {
             m_lockOnCursor[subId] = true;

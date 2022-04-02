@@ -27,7 +27,7 @@ namespace GameEngine
         CInputCtrl(CInputCtrl &&) = delete;
         CInputCtrl &operator=(CInputCtrl &&) = delete;
 
-        void mapKeyToAction(Key, Action, Parameter);
+        void mapKeyToAction(Key, Action, Parameter &);
         void freeUpKey(Key);
         void executeAction(const Key &);
 
@@ -35,12 +35,12 @@ namespace GameEngine
         int32_t getIndexOfKey(const Key &key);
 
         std::vector<Key> m_keys;
-        std::vector<std::vector<std::pair<Action, Parameter>>> m_callbcks;
+        std::vector<std::vector<std::pair<Action, Parameter &>>> m_callbcks;
         int32_t m_keyIndex{0};
     };
 
     template <typename Key, typename Action, typename Parameter, eKeyBindingType Binding>
-    void CInputCtrl<Key, Action, Parameter, Binding>::mapKeyToAction(Key key, Action callback, Parameter param)
+    void CInputCtrl<Key, Action, Parameter, Binding>::mapKeyToAction(Key key, Action callback, Parameter &param)
     {
         auto index = getIndexOfKey(key);
         if (index == InvalidIndex)

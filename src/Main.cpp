@@ -4,8 +4,107 @@
 #include "CKeyboardCtrl.hpp"
 #include "CMouseCtrl.hpp"
 #include "CUtility.hpp"
-#include "CSpriteWrapper.hpp"
+#include "CEntityWrapper.hpp"
+#include "CProjectiles.hpp"
 
+void spawnBoundry(std::vector<GameEngine::CEntityWrapper<sf::RectangleShape>> &boundry)
+{
+    GameEngine::CEntityWrapper<sf::RectangleShape> rect(0);
+    rect.setSize({50.f, 600.f});
+    rect.setFillColor(sf::Color::White);
+    rect.setPosition(0, 0);
+    boundry.push_back(rect);
+
+    GameEngine::CEntityWrapper<sf::RectangleShape> rect2(180);
+    rect2.setSize({50.f, 600.f});
+    rect2.setFillColor(sf::Color::White);
+    rect2.setPosition(750, 0);
+    boundry.push_back(rect2);
+
+    GameEngine::CEntityWrapper<sf::RectangleShape> rect3(90);
+    rect3.setSize({800.f, 50.f});
+    rect3.setFillColor(sf::Color::White);
+    rect3.setPosition(0, 0);
+    boundry.push_back(rect3);
+
+    GameEngine::CEntityWrapper<sf::RectangleShape> rect4(-90);
+    rect4.setSize({800.f, 50.f});
+    rect4.setFillColor(sf::Color::White);
+    rect4.setPosition(0, 550);
+    boundry.push_back(rect4);
+}
+
+void projectileTesting()
+{
+    std::cout << "Press UP once to start moving the bullets" << std::endl;
+    auto sharedPtrWindow = std::make_shared<sf::RenderWindow>(
+        sf::VideoMode(800, 600), "MouseTestWindow");
+
+    std::vector<GameEngine::CEntityWrapper<sf::RectangleShape>> boundry;
+    spawnBoundry(boundry);
+
+    std::vector<std::shared_ptr<GameEngine::CProjectile>> bullets;
+    std::vector<std::function<void(float)>> fptrs;
+    std::vector<float> angles;
+
+    bullets.push_back(std::make_shared<GameEngine::CProjectile>(60.f, 4, sf::Color::Cyan, 0, sf::Color::Red));
+    bullets[0]->spawn({1, 0, 0, 0, 0, 1, 0, 0, 1, 0}, {400, 100}, 5);
+    fptrs.push_back(std::bind(&GameEngine::CProjectile::shoot, bullets[0], std::placeholders::_1));
+    angles.push_back(rand() % 91);
+
+    bullets.push_back(std::make_shared<GameEngine::CProjectile>(10.f, 5, sf::Color::Red, 0, sf::Color::Red));
+    bullets[1]->spawn({1, 0, 0, 0, 0, 1, 0, 0, 0, 0}, {400, 100}, 10);
+    fptrs.push_back(std::bind(&GameEngine::CProjectile::shoot, bullets[1], std::placeholders::_1));
+    angles.push_back(rand() % 91);
+
+    bullets.push_back(std::make_shared<GameEngine::CProjectile>(30.f, 3, sf::Color::Green, 0, sf::Color::Red));
+    bullets[2]->spawn({1, 0, 0, 0, 0, 0, 0, 1, 0, 0}, {400, 100}, 2);
+    fptrs.push_back(std::bind(&GameEngine::CProjectile::shoot, bullets[2], std::placeholders::_1));
+    angles.push_back(rand() % 91);
+
+    auto objKb = std::make_unique<GameEngine::CKeyboardCtrl<float>>();
+
+    for (int i = 0; i < fptrs.size(); i++)
+    {
+        objKb->mapKeyToAction(
+            sf::Keyboard::Up, fptrs[i], angles[i]);
+    }
+
+    sf::Event event;
+    sharedPtrWindow->setFramerateLimit(120);
+    while (sharedPtrWindow->isOpen())
+    {
+        sharedPtrWindow->clear(sf::Color::Black);
+        while (sharedPtrWindow->pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+            {
+                sharedPtrWindow->close();
+            }
+            if (event.type == sf::Event::KeyPressed)
+            {
+                objKb->executeAction(event.key.code);
+            }
+        }
+
+        for (auto &bullet : bullets)
+        {
+            for (auto &side : boundry)
+            {
+                if (side.getGlobalBounds().intersects(bullet->getGlobalBounds()))
+                {
+                    bullet->onCollision(GameEngine::ObstructionTypes::reflective, side.getDirectionOfPerpendicular());
+                }
+
+                sharedPtrWindow->draw(side);
+            }
+            bullet->runMainLoop();
+            sharedPtrWindow->draw(*bullet);
+        }
+
+        sharedPtrWindow->display();
+    }
+}
 void mouseFunctionTesting()
 {
     auto objMse = std::make_shared<GameEngine::CMouseCtrl>();
@@ -19,7 +118,7 @@ void mouseFunctionTesting()
     texture.loadFromFile("assets/graphics/Ghost1_00.png");
     texture.setSmooth(true);
 
-    GameEngine::CSpriteWrapper sprite;
+    GameEngine::CEntityWrapper<sf::Sprite> sprite;
     sprite.setTexture(texture);
     sprite.setScale(0.3f, 0.3f);
     sprite.setPosition(500, 500);
@@ -70,14 +169,16 @@ void mouseFunctionTesting()
 void mouseCtrlTest()
 {
     auto objMse = std::make_unique<GameEngine::CMouseCtrl>();
+    int32_t tempVal = 0;
+
     objMse->mapKeyToAction(
         sf::Mouse::Left, [](int32_t)
         { std::cout << "Left click" << std::endl; },
-        0);
+        tempVal);
     objMse->mapKeyToAction(
         sf::Mouse::Right, [](int32_t)
         { std::cout << "Right click" << std::endl; },
-        0);
+        tempVal);
     auto sharedPtrWindow = std::make_shared<sf::RenderWindow>(
         sf::VideoMode(800, 600), "MouseTestWindow");
 
@@ -101,28 +202,29 @@ void mouseCtrlTest()
 void keyBoardCtrlTest()
 {
 
-    auto objKb = std::make_unique<GameEngine::CKeyboardCtrl>();
+    auto objKb = std::make_unique<GameEngine::CKeyboardCtrl<uint8_t>>();
     auto sharedPtrWindow = std::make_shared<sf::RenderWindow>(
         sf::VideoMode(800, 600), "KeyBoardTestWindow");
 
     sf::Event event;
+    uint8_t tempVal = 0;
     sharedPtrWindow->setFramerateLimit(120);
     objKb->mapKeyToAction(
         sf::Keyboard::Up, [](int32_t)
         { std::cout << "UP" << std::endl; },
-        0);
+        tempVal);
     objKb->mapKeyToAction(
         sf::Keyboard::Up, [](int32_t)
         { std::cout << "DOWN" << std::endl; },
-        0);
+        tempVal);
     objKb->mapKeyToAction(
         sf::Keyboard::Left, [](int32_t)
         { std::cout << "LEFT" << std::endl; },
-        0);
+        tempVal);
     objKb->mapKeyToAction(
         sf::Keyboard::Right, [](int32_t)
         { std::cout << "RIGHT" << std::endl; },
-        0);
+        tempVal);
 
     while (sharedPtrWindow->isOpen())
     {
@@ -142,6 +244,7 @@ void keyBoardCtrlTest()
 
 int main(int args, char **argsList)
 {
-    mouseFunctionTesting();
+    srand(time(nullptr));
+    projectileTesting();
     return 0;
 }

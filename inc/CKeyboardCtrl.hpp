@@ -8,9 +8,8 @@
 
 namespace GameEngine
 {
-    using ParamType = int32_t;
-    using Action = std::function<void(ParamType)>;
-    class CKeyboardCtrl : public CInputCtrl<sf::Keyboard::Key, Action, ParamType>
+    template <typename Input>
+    class CKeyboardCtrl : public CInputCtrl<sf::Keyboard::Key, std::function<void(Input)>, Input, eKeyBindingType::manyToOne>
     {
     public:
         CKeyboardCtrl() = default;
