@@ -57,8 +57,8 @@ namespace GameEngine
         static eQuadrantType getQuadrantAfterReflection(float, float);
         static float getAngleForQuadrant(float, eQuadrantType);
         static Component getComponent(float Magnitude, float thetaXY, float thetaZ, Component origin);
-        static bool Compare(float, float);
-        static bool Compare(sf::Vector2f P1, sf::Vector2f P2);
+        static bool compareApproximately(float, float);
+        static bool comparePoints(sf::Vector2f P1, sf::Vector2f P2);
 
     private:
         static int32_t globalElementCount;
@@ -218,12 +218,12 @@ namespace GameEngine
         return Component(Magnitude * sin(degToRads(thetaZ)) * cos(degToRads(thetaXY)) + origin.xComponent, Magnitude * sin(degToRads(thetaZ)) * sin(degToRads(thetaXY)) + origin.yComponent, Magnitude * cos(degToRads(thetaZ)) + origin.zComponent);
     }
 
-    bool CUtility::Compare(float p1, float p2)
+    bool CUtility::compareApproximately(float p1, float p2)
     {
         return abs(ceil(p2) - ceil(p1)) <= Utility::ComparisonThreshold;
     }
 
-    bool CUtility::Compare(sf::Vector2f P1, sf::Vector2f P2)
+    bool CUtility::comparePoints(sf::Vector2f P1, sf::Vector2f P2)
     {
         return P1.x == P2.x && P1.y == P2.y;
     }

@@ -24,6 +24,7 @@ namespace GameEngine
         const sf::Vector2f EnlargeSizeRatio = {1.001f, 1.001f};
         const sf::Vector2f ShrinkSizeRatio = {0.998f, 0.998f};
         constexpr auto CollisionTimeSeparation = 50;
+        constexpr auto GravityCoefficient = 0.005f;
     }
 
     namespace Trigger

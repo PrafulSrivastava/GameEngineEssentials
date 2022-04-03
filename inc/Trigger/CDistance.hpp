@@ -75,9 +75,9 @@ namespace GameEngine
         {
             for (auto i = 0; i < m_listRegistered.size(); i++)
             {
-                if (!CUtility::Compare(m_prevPosition[i], m_listRegistered[i].get().getPosition()))
+                if (!CUtility::comparePoints(m_prevPosition[i], m_listRegistered[i].get().getPosition()))
                 {
-                    if (CUtility::Compare(m_listRegistered[i].get().getPosition().x, m_NotifyActions[i].component.xComponent) && CUtility::Compare(m_listRegistered[i].get().getPosition().y, m_NotifyActions[i].component.yComponent))
+                    if (CUtility::compareApproximately(m_listRegistered[i].get().getPosition().x, m_NotifyActions[i].component.xComponent) && CUtility::compareApproximately(m_listRegistered[i].get().getPosition().y, m_NotifyActions[i].component.yComponent))
                     {
                         m_NotifyActions[i].notifyAction();
                         if (m_NotifyActions[i].isContinuous.count())

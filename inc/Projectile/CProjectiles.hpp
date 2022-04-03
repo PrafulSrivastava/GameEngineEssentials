@@ -5,11 +5,12 @@
 #include <iostream>
 #include "Globals.hpp"
 #include "CUtility.hpp"
+#include "CEntityWrapper.hpp"
 #include <SFML/Graphics.hpp>
 
 namespace GameEngine::Projectile
 {
-    using Dimension = uint8_t;
+    using Dimension = float;
 
     enum class AttributeTypes : uint8_t
     {
@@ -32,7 +33,7 @@ namespace GameEngine::Projectile
         penetrable
     };
 
-    class CProjectile : public sf::CircleShape
+    class CProjectile : public CEntityWrapper<sf::CircleShape>
     {
     public:
         CProjectile(
@@ -56,6 +57,7 @@ namespace GameEngine::Projectile
         void onCollision(ObstructionTypes, float);
 
     private:
+        void applyAttributes();
         // is reflectable
         // is dissappearable
         // has tail
@@ -67,7 +69,8 @@ namespace GameEngine::Projectile
         // becomes smaller
         // spreads into smaller chunks on collision.
         std::bitset<Projectile::AttributeCount> m_attributeBitSet;
-        Dimension m_velocity{0};
+        Dimension m_velocityX{0};
+        Dimension m_velocityY{0};
         float m_direction{0};
         float m_directionOld{0};
         eQuadrantType m_quadrant{eQuadrantType::eUnknown};
@@ -96,7 +99,8 @@ namespace GameEngine::Projectile
             }
         }
 
-        m_velocity = velocity;
+        m_velocityX = velocity;
+        m_velocityY = velocity;
         setPosition(pos);
     }
 
@@ -104,6 +108,7 @@ namespace GameEngine::Projectile
     {
         m_direction = angle;
         m_isShot = true;
+        setLiveStatus(true);
     }
 
     void CProjectile::onCollision(ObstructionTypes obstruction, float angleOfObstruction)
@@ -112,13 +117,16 @@ namespace GameEngine::Projectile
         {
         case ObstructionTypes::reflective:
             // temporary soultion
-            if (m_CollisionMonitor.getElapsedTime().asMilliseconds() >= Projectile::CollisionTimeSeparation)
+            if (m_attributeBitSet[static_cast<uint8_t>(AttributeTypes::reflects)] == 1)
             {
-                m_CollisionMonitor.restart();
-                if (m_attributeBitSet[static_cast<uint8_t>(AttributeTypes::reflects)] == 1)
+                if (m_CollisionMonitor.getElapsedTime().asMilliseconds() >= Projectile::CollisionTimeSeparation)
                 {
-                    m_quadrant = CUtility::getQuadrantAfterReflection(m_direction, angleOfObstruction);
-                    m_direction = CUtility::getAngleForQuadrant(m_direction, m_quadrant);
+                    m_CollisionMonitor.restart();
+                    if (m_attributeBitSet[static_cast<uint8_t>(AttributeTypes::reflects)] == 1)
+                    {
+                        m_quadrant = CUtility::getQuadrantAfterReflection(m_direction, angleOfObstruction);
+                        m_direction = CUtility::getAngleForQuadrant(m_direction, m_quadrant);
+                    }
                 }
             }
             break;
@@ -129,33 +137,77 @@ namespace GameEngine::Projectile
         }
     }
 
-    void CProjectile::runMainLoop()
+    void CProjectile::applyAttributes()
     {
+        if (m_attributeBitSet[static_cast<uint8_t>(AttributeTypes::fades)])
+        {
+            auto color = getFillColor();
+            if (color.a == 0)
+            {
+                m_isShot = false;
+            }
+            else
+            {
+                color.a--;
+                setFillColor(color);
+            }
+        }
+        if (m_attributeBitSet[static_cast<uint8_t>(AttributeTypes::tail)])
+        {
+        }
+        if (m_attributeBitSet[static_cast<uint8_t>(AttributeTypes::exposive)])
+        {
+        }
+        if (m_attributeBitSet[static_cast<uint8_t>(AttributeTypes::fluid)])
+        {
+        }
         if (m_attributeBitSet[static_cast<uint8_t>(AttributeTypes::spins)])
         {
             rotate(Projectile::SpinAngle);
         }
-
+        if (m_attributeBitSet[static_cast<uint8_t>(AttributeTypes::obeyGravity)])
+        {
+            if (std::sin(CUtility::degToRads(m_direction)) > 0)
+            {
+                m_velocityY += (Projectile::GravityCoefficient);
+            }
+            else
+            {
+                m_velocityY -= (Projectile::GravityCoefficient);
+            }
+        }
         if (m_attributeBitSet[static_cast<uint8_t>(AttributeTypes::expands)])
         {
             scale(Projectile::EnlargeSizeRatio);
         }
-
         if (m_attributeBitSet[static_cast<uint8_t>(AttributeTypes::shrinks)])
         {
             scale(Projectile::ShrinkSizeRatio);
         }
+        if (m_attributeBitSet[static_cast<uint8_t>(AttributeTypes::disperses)])
+        {
+        }
+    }
+
+    void CProjectile::runMainLoop()
+    {
+        applyAttributes();
+
         if (m_isShot)
         {
             auto ratio = CUtility::getMovementRatio(m_direction);
-            auto xMotion = ratio.x * m_velocity;
-            auto yMotion = ratio.y * m_velocity;
+            auto xMotion = ratio.x * m_velocityX;
+            auto yMotion = ratio.y * m_velocityY;
             if (m_directionOld != m_direction)
             {
                 m_quadrant = CUtility::findQuadrant(m_direction);
                 m_directionOld = m_direction;
             }
             move(xMotion, yMotion);
+        }
+        else
+        {
+            setLiveStatus(false);
         }
     }
 }

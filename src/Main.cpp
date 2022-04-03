@@ -98,18 +98,18 @@ void projectileTesting()
     std::vector<std::function<void(float)>> fptrs;
     std::vector<float> angles;
 
-    bullets.push_back(std::make_shared<GameEngine::Projectile::CProjectile>(60.f, 4, sf::Color::Cyan, 0, sf::Color::Red));
-    bullets[0]->spawn({1, 0, 0, 0, 0, 1, 0, 0, 1, 0}, {400, 100}, 5);
+    bullets.push_back(std::make_shared<GameEngine::Projectile::CProjectile>(6.f, 4, sf::Color::Cyan, 0, sf::Color::Red));
+    bullets[0]->spawn({1, 0, 0, 0, 0, 0, 1, 0, 0, 0}, {200, 300}, 2);
     fptrs.push_back(std::bind(&GameEngine::Projectile::CProjectile::shoot, bullets[0], std::placeholders::_1));
     angles.push_back(rand() % 91);
 
     bullets.push_back(std::make_shared<GameEngine::Projectile::CProjectile>(10.f, 5, sf::Color::Red, 0, sf::Color::Red));
-    bullets[1]->spawn({1, 0, 0, 0, 0, 1, 0, 0, 0, 0}, {400, 100}, 10);
+    bullets[1]->spawn({1, 0, 0, 0, 0, 0, 0, 0, 1, 0}, {400, 100}, 4);
     fptrs.push_back(std::bind(&GameEngine::Projectile::CProjectile::shoot, bullets[1], std::placeholders::_1));
     angles.push_back(rand() % 91);
 
-    bullets.push_back(std::make_shared<GameEngine::Projectile::CProjectile>(30.f, 3, sf::Color::Green, 0, sf::Color::Red));
-    bullets[2]->spawn({1, 0, 0, 0, 0, 0, 0, 1, 0, 0}, {400, 100}, 2);
+    bullets.push_back(std::make_shared<GameEngine::Projectile::CProjectile>(30.f, 3, sf::Color::Transparent, 0, sf::Color::Red));
+    bullets[2]->spawn({1, 1, 0, 0, 0, 0, 0, 0, 0, 0}, {400, 100}, 6);
     fptrs.push_back(std::bind(&GameEngine::Projectile::CProjectile::shoot, bullets[2], std::placeholders::_1));
     angles.push_back(rand() % 91);
 
@@ -140,8 +140,16 @@ void projectileTesting()
 
         for (auto &bullet : bullets)
         {
+            if (!bullet->isActive())
+            {
+                continue;
+            }
             for (auto &side : boundry)
             {
+                if (!side.isActive())
+                {
+                    continue;
+                }
                 if (side.getGlobalBounds().intersects(bullet->getGlobalBounds()))
                 {
                     bullet->onCollision(GameEngine::Projectile::ObstructionTypes::reflective, side.getDirectionOfPerpendicular());
@@ -413,10 +421,110 @@ void TriggerTesting()
     }
 }
 
+void colorFadeTest()
+{
+    GameEngine::CEntityWrapper<sf::RectangleShape> rect(0);
+    rect.setSize({400.f, 200.f});
+    rect.setPosition(400, 300);
+
+    auto sharedPtrWindow = std::make_shared<sf::RenderWindow>(
+        sf::VideoMode(800, 600), "RotationTesting");
+
+    GameEngine::CUtility::setWindow(sharedPtrWindow);
+    rect.setOrigin(GameEngine::CUtility::getCentreForShape(rect.getLocalBounds()));
+
+    sharedPtrWindow->setFramerateLimit(120);
+
+    auto objKb = std::make_unique<GameEngine::Controller::CKeyboardCtrl<sf::Color>>();
+    auto x = 128;
+    sf::Color color = sf::Color(255, 255, 255, 128);
+
+    objKb->mapKeyToAction(
+        sf::Keyboard::R, [&](sf::Color clr)
+        {
+            color.r--;
+            rect.setFillColor(color); },
+        color);
+
+    objKb->mapKeyToAction(
+        sf::Keyboard::B, [&](sf::Color clr)
+        {
+            color.b--;
+            rect.setFillColor(color); },
+        color);
+
+    objKb->mapKeyToAction(
+        sf::Keyboard::G, [&](sf::Color clr)
+        {
+            color.g--;
+            rect.setFillColor(color); },
+        color);
+
+    objKb->mapKeyToAction(
+        sf::Keyboard::A, [&](sf::Color clr)
+        {
+            color.a--;
+            rect.setFillColor(color); },
+        color);
+
+    objKb->mapKeyToAction(
+        sf::Keyboard::T, [&](sf::Color clr)
+        {
+            color.r++;
+            rect.setFillColor(color); },
+        color);
+
+    objKb->mapKeyToAction(
+        sf::Keyboard::N, [&](sf::Color clr)
+        {
+            color.b++;
+            rect.setFillColor(color); },
+        color);
+
+    objKb->mapKeyToAction(
+        sf::Keyboard::H, [&](sf::Color clr)
+        {
+            color.g++;
+            rect.setFillColor(color); },
+        color);
+
+    objKb->mapKeyToAction(
+        sf::Keyboard::S, [&](sf::Color clr)
+        {
+            color.a++;
+            rect.setFillColor(color); },
+        color);
+
+    while (sharedPtrWindow->isOpen())
+    {
+        sf::Event event;
+        sharedPtrWindow->clear(sf::Color::Black);
+
+        while (sharedPtrWindow->pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+            {
+                sharedPtrWindow->close();
+            }
+            if (event.type == sf::Event::KeyPressed)
+            {
+                if (event.key.code == sf::Keyboard::Escape)
+                {
+                    sharedPtrWindow->close();
+                }
+                objKb->executeAction(event.key.code);
+            }
+        }
+
+        sharedPtrWindow->draw(rect);
+        sharedPtrWindow->display();
+    }
+}
+
 int main(int args, char **argsList)
 {
     srand(time(nullptr));
-    TriggerTesting();
+    projectileTesting();
 
     return 0;
 }

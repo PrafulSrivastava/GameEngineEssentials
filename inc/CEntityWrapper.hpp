@@ -20,10 +20,13 @@ namespace GameEngine
         CEntityWrapper &operator=(CEntityWrapper &&) = default;
 
         int32_t getEntityId();
+        bool isActive();
+        void setLiveStatus(bool);
         float getDirectionOfPerpendicular();
 
     private:
         int32_t m_Id{};
+        GameType::shortBool m_isActive;
         float m_directionOfPerpendicular;
     };
 
@@ -31,6 +34,19 @@ namespace GameEngine
     CEntityWrapper<Entity>::CEntityWrapper(float directionOfPerpendicular)
         : m_Id(CUtility::getFreshElementId()), m_directionOfPerpendicular(directionOfPerpendicular)
     {
+        m_isActive.set(0);
+    }
+
+    template <typename Entity>
+    bool CEntityWrapper<Entity>::isActive()
+    {
+        return m_isActive.all();
+    }
+
+    template <typename Entity>
+    void CEntityWrapper<Entity>::setLiveStatus(bool status)
+    {
+        (status)? m_isActive.set(0): m_isActive.reset(0);
     }
 
     template <typename Entity>
