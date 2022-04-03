@@ -7,9 +7,8 @@
 #include "CUtility.hpp"
 #include <SFML/Graphics.hpp>
 
-namespace GameEngine
+namespace GameEngine::Projectile
 {
-
     using Dimension = uint8_t;
 
     enum class AttributeTypes : uint8_t

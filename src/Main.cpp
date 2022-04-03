@@ -21,18 +21,14 @@ void RotationTesting()
     texture.setSmooth(true);
 
     GameEngine::CEntityWrapper<sf::Sprite> obj;
-    // obj.setOrigin(GameEngine::CUtility::getCentreForShape(obj.getGlobalBounds()));
-
     obj.setTexture(texture);
     obj.setScale(0.3f, 0.3f);
     obj.setPosition(200, 200);
     GameEngine::CUtility::setOriginToCenter(obj);
 
-    // obj.setOrigin(GameEngine::CUtility::getCentreForShape(obj.getGlobalBounds()));
-
     sharedPtrWindow->setFramerateLimit(120);
 
-    auto objKb = std::make_unique<GameEngine::CKeyboardCtrl<float>>();
+    auto objKb = std::make_unique<GameEngine::Controller::CKeyboardCtrl<float>>();
     float subId = 10;
 
     objKb->mapKeyToAction(
@@ -98,26 +94,26 @@ void projectileTesting()
     std::vector<GameEngine::CEntityWrapper<sf::RectangleShape>> boundry;
     spawnBoundry(boundry);
 
-    std::vector<std::shared_ptr<GameEngine::CProjectile>> bullets;
+    std::vector<std::shared_ptr<GameEngine::Projectile::CProjectile>> bullets;
     std::vector<std::function<void(float)>> fptrs;
     std::vector<float> angles;
 
-    bullets.push_back(std::make_shared<GameEngine::CProjectile>(60.f, 4, sf::Color::Cyan, 0, sf::Color::Red));
+    bullets.push_back(std::make_shared<GameEngine::Projectile::CProjectile>(60.f, 4, sf::Color::Cyan, 0, sf::Color::Red));
     bullets[0]->spawn({1, 0, 0, 0, 0, 1, 0, 0, 1, 0}, {400, 100}, 5);
-    fptrs.push_back(std::bind(&GameEngine::CProjectile::shoot, bullets[0], std::placeholders::_1));
+    fptrs.push_back(std::bind(&GameEngine::Projectile::CProjectile::shoot, bullets[0], std::placeholders::_1));
     angles.push_back(rand() % 91);
 
-    bullets.push_back(std::make_shared<GameEngine::CProjectile>(10.f, 5, sf::Color::Red, 0, sf::Color::Red));
+    bullets.push_back(std::make_shared<GameEngine::Projectile::CProjectile>(10.f, 5, sf::Color::Red, 0, sf::Color::Red));
     bullets[1]->spawn({1, 0, 0, 0, 0, 1, 0, 0, 0, 0}, {400, 100}, 10);
-    fptrs.push_back(std::bind(&GameEngine::CProjectile::shoot, bullets[1], std::placeholders::_1));
+    fptrs.push_back(std::bind(&GameEngine::Projectile::CProjectile::shoot, bullets[1], std::placeholders::_1));
     angles.push_back(rand() % 91);
 
-    bullets.push_back(std::make_shared<GameEngine::CProjectile>(30.f, 3, sf::Color::Green, 0, sf::Color::Red));
+    bullets.push_back(std::make_shared<GameEngine::Projectile::CProjectile>(30.f, 3, sf::Color::Green, 0, sf::Color::Red));
     bullets[2]->spawn({1, 0, 0, 0, 0, 0, 0, 1, 0, 0}, {400, 100}, 2);
-    fptrs.push_back(std::bind(&GameEngine::CProjectile::shoot, bullets[2], std::placeholders::_1));
+    fptrs.push_back(std::bind(&GameEngine::Projectile::CProjectile::shoot, bullets[2], std::placeholders::_1));
     angles.push_back(rand() % 91);
 
-    auto objKb = std::make_unique<GameEngine::CKeyboardCtrl<float>>();
+    auto objKb = std::make_unique<GameEngine::Controller::CKeyboardCtrl<float>>();
 
     for (int i = 0; i < fptrs.size(); i++)
     {
@@ -148,7 +144,7 @@ void projectileTesting()
             {
                 if (side.getGlobalBounds().intersects(bullet->getGlobalBounds()))
                 {
-                    bullet->onCollision(GameEngine::ObstructionTypes::reflective, side.getDirectionOfPerpendicular());
+                    bullet->onCollision(GameEngine::Projectile::ObstructionTypes::reflective, side.getDirectionOfPerpendicular());
                 }
 
                 sharedPtrWindow->draw(side);
@@ -162,7 +158,7 @@ void projectileTesting()
 }
 void mouseFunctionTesting()
 {
-    auto objMse = std::make_shared<GameEngine::CMouseCtrl>();
+    auto objMse = std::make_shared<GameEngine::Controller::CMouseCtrl>();
 
     auto sharedPtrWindow = std::make_shared<sf::RenderWindow>(
         sf::VideoMode(1000, 1000), "MouseFunctionTestWindow");
@@ -182,18 +178,18 @@ void mouseFunctionTesting()
     auto subId = objMse->subscribeToMouseCtrl(sprite);
     objMse->lockObjectVisionOnMarker(subId, static_cast<sf::Vector2f>(sf::Mouse::getPosition()));
 
-    auto fptrLeftClick = std::bind(&GameEngine::CMouseCtrl::chaseMarker, objMse, std::placeholders::_1);
+    auto fptrLeftClick = std::bind(&GameEngine::Controller::CMouseCtrl::chaseMarker, objMse, std::placeholders::_1);
     objMse->mapKeyToAction(sf::Mouse::Left, fptrLeftClick, subId);
 
-    auto fptrRightClick = std::bind(&GameEngine::CMouseCtrl::stopChasingMarker, objMse, std::placeholders::_1);
+    auto fptrRightClick = std::bind(&GameEngine::Controller::CMouseCtrl::stopChasingMarker, objMse, std::placeholders::_1);
     objMse->mapKeyToAction(sf::Mouse::Right, fptrRightClick, subId);
 
     objMse->freeUpKey(sf::Mouse::Left);
 
-    auto fptrLeftClick2 = std::bind(&GameEngine::CMouseCtrl::lockObjectOnClick, objMse, std::placeholders::_1);
+    auto fptrLeftClick2 = std::bind(&GameEngine::Controller::CMouseCtrl::lockObjectOnClick, objMse, std::placeholders::_1);
     objMse->mapKeyToAction(sf::Mouse::Left, fptrLeftClick2, subId);
 
-    auto fptrMiddleClick = std::bind(&GameEngine::CMouseCtrl::unlockObjectOnClick, objMse, std::placeholders::_1);
+    auto fptrMiddleClick = std::bind(&GameEngine::Controller::CMouseCtrl::unlockObjectOnClick, objMse, std::placeholders::_1);
     objMse->mapKeyToAction(sf::Mouse::Middle, fptrMiddleClick, subId);
 
     sharedPtrWindow->setFramerateLimit(120);
@@ -223,7 +219,7 @@ void mouseFunctionTesting()
 
 void mouseCtrlTest()
 {
-    auto objMse = std::make_unique<GameEngine::CMouseCtrl>();
+    auto objMse = std::make_unique<GameEngine::Controller::CMouseCtrl>();
     int32_t tempVal = 0;
 
     objMse->mapKeyToAction(
@@ -257,7 +253,7 @@ void mouseCtrlTest()
 void keyBoardCtrlTest()
 {
 
-    auto objKb = std::make_unique<GameEngine::CKeyboardCtrl<uint8_t>>();
+    auto objKb = std::make_unique<GameEngine::Controller::CKeyboardCtrl<uint8_t>>();
     auto sharedPtrWindow = std::make_shared<sf::RenderWindow>(
         sf::VideoMode(800, 600), "KeyBoardTestWindow");
 
@@ -318,14 +314,14 @@ void vTimerTesting()
     auto objTimer = std::make_unique<GameEngine::Trigger::CTimer<std::chrono::seconds, Action>>();
 
     std::this_thread::sleep_for(std::chrono::seconds(0));
-    objTimer->ElapseTime(2, std::bind(&testing1), 1);
+    objTimer->registerForTimerNotification(2, std::bind(&testing1), 1);
     std::this_thread::sleep_for(std::chrono::seconds(3));
-    objTimer->ElapseTime(1, std::bind(&testing2), 0);
+    objTimer->registerForTimerNotification(1, std::bind(&testing2), 0);
     std::this_thread::sleep_for(std::chrono::seconds(6));
-    objTimer->ElapseTime(3, std::bind(&testing3), 1);
+    objTimer->registerForTimerNotification(3, std::bind(&testing3), 1);
 
     std::this_thread::sleep_for(std::chrono::seconds(20));
-    objTimer->StopTimer();
+    objTimer->stopTimer();
 }
 
 void testing4()
@@ -337,7 +333,7 @@ void TriggerTesting()
 {
     using Action = std::function<void()>;
 
-    auto objMse = std::make_shared<GameEngine::CMouseCtrl>();
+    auto objMse = std::make_shared<GameEngine::Controller::CMouseCtrl>();
     auto objTimer = std::make_unique<GameEngine::Trigger::CDistance<sf::Sprite, Action>>();
 
     auto sharedPtrWindow = std::make_shared<sf::RenderWindow>(
@@ -358,21 +354,21 @@ void TriggerTesting()
     auto subId = objMse->subscribeToMouseCtrl(sprite);
     objMse->lockObjectVisionOnMarker(subId, static_cast<sf::Vector2f>(sf::Mouse::getPosition()));
 
-    auto fptrLeftClick = std::bind(&GameEngine::CMouseCtrl::chaseMarker, objMse, std::placeholders::_1);
+    auto fptrLeftClick = std::bind(&GameEngine::Controller::CMouseCtrl::chaseMarker, objMse, std::placeholders::_1);
     objMse->mapKeyToAction(sf::Mouse::Left, fptrLeftClick, subId);
 
-    auto fptrRightClick = std::bind(&GameEngine::CMouseCtrl::stopChasingMarker, objMse, std::placeholders::_1);
+    auto fptrRightClick = std::bind(&GameEngine::Controller::CMouseCtrl::stopChasingMarker, objMse, std::placeholders::_1);
     objMse->mapKeyToAction(sf::Mouse::Right, fptrRightClick, subId);
 
     objMse->freeUpKey(sf::Mouse::Left);
 
-    auto fptrLeftClick2 = std::bind(&GameEngine::CMouseCtrl::lockObjectOnClick, objMse, std::placeholders::_1);
+    auto fptrLeftClick2 = std::bind(&GameEngine::Controller::CMouseCtrl::lockObjectOnClick, objMse, std::placeholders::_1);
     objMse->mapKeyToAction(sf::Mouse::Left, fptrLeftClick2, subId);
 
-    auto fptrMiddleClick = std::bind(&GameEngine::CMouseCtrl::unlockObjectOnClick, objMse, std::placeholders::_1);
+    auto fptrMiddleClick = std::bind(&GameEngine::Controller::CMouseCtrl::unlockObjectOnClick, objMse, std::placeholders::_1);
     objMse->mapKeyToAction(sf::Mouse::Middle, fptrMiddleClick, subId);
 
-    objTimer->RegisterDistanceNotification(300, 45, 90, sprite, std::bind(&testing4), 0);
+    objTimer->registerForDistanceNotification(300, 45, 90, sprite, std::bind(&testing4), 0);
 
     sharedPtrWindow->setFramerateLimit(120);
     while (sharedPtrWindow->isOpen())
@@ -396,7 +392,7 @@ void TriggerTesting()
         }
         if (objTimer != nullptr)
         {
-            objTimer->StartMoving();
+            objTimer->start();
 
             if (objTimer->isDistanceTriggerRegistered().any())
                 sprite.setPosition(++posx, ++posy);
@@ -405,7 +401,7 @@ void TriggerTesting()
             {
                 sprite.setPosition(500, 500);
 
-                objTimer->RegisterDistanceNotification(300, 45, 90, sprite, std::bind(&testing4), 0);
+                objTimer->registerForDistanceNotification(300, 45, 90, sprite, std::bind(&testing4), 0);
             }
         }
 
@@ -420,11 +416,7 @@ void TriggerTesting()
 int main(int args, char **argsList)
 {
     srand(time(nullptr));
-    // projectileTesting();
-    // mouseFunctionTesting();
-    vTimerTesting();
-    // TriggerTesting();
-    // RotationTesting();
+    TriggerTesting();
 
     return 0;
 }

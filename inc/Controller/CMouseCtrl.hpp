@@ -10,7 +10,7 @@
 #include "CUtility.hpp"
 #include "CEntityWrapper.hpp"
 
-namespace GameEngine
+namespace GameEngine::Controller
 {
     using MouseParamType = int32_t;
     using MouseAction = std::function<void(MouseParamType)>;

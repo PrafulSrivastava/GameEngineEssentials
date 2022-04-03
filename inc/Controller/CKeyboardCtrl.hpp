@@ -6,7 +6,7 @@
 #include <vector>
 #include "CInputCtrl.hpp"
 
-namespace GameEngine
+namespace GameEngine::Controller
 {
     template <typename Input>
     class CKeyboardCtrl : public CInputCtrl<sf::Keyboard::Key, std::function<void(Input)>, Input, eKeyBindingType::manyToOne>

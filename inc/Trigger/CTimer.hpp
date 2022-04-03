@@ -29,36 +29,35 @@ namespace GameEngine
             CTimer &operator=(CTimer &&) = delete;
 
             // Registering for the timer notification
-            uint32_t ElapseTime(uint32_t, NotifyAction, GameType::shortBool);
+            uint32_t registerForTimerNotification(uint32_t, NotifyAction, GameType::shortBool);
             // To stop the timer.. Mandatory once we created the object of this class
-            void StopTimer();
+            void stopTimer();
             // To remove particular timer id from the list
-            void vRemoveTimeTrigger(uint32_t);
+            void unregisterFromTimerNotification(uint32_t);
 
         private:
             std::unique_ptr<std::thread> m_timerThread, m_notifierThread;
-            uint8_t m_timerId;
             std::unordered_map<uint8_t, NotifyCallback> m_notifyCallback;
-            GameType::shortBool m_IsIntervalFinished, m_TimerStop;
-
+            GameType::shortBool m_IsIntervalFinished, m_TimerStop;            
+            uint8_t m_subscriptionId;
             std::condition_variable m_cvInterval;
             std::mutex m_mutexInterval;
 
             // Starts the timer.. it will sleep for some time and notify
-            void StartTimer();
+            void startTimer();
             // Performs the respective functionality once timer value finished
-            void NotifyInterval();
+            void notifyTimeIntervals();
         };
 
         template <typename Time, typename NotifyAction>
-        CTimer<Time, NotifyAction>::CTimer() : m_IsIntervalFinished(0), m_TimerStop(0), m_timerId(0)
+        CTimer<Time, NotifyAction>::CTimer() : m_IsIntervalFinished(0), m_TimerStop(0), m_subscriptionId(0)
         {
-            m_timerThread = std::make_unique<std::thread>(&CTimer::StartTimer, this);
-            m_notifierThread = std::make_unique<std::thread>(&CTimer::NotifyInterval, this);
+            m_timerThread = std::make_unique<std::thread>(&CTimer::startTimer, this);
+            m_notifierThread = std::make_unique<std::thread>(&CTimer::notifyTimeIntervals, this);
         }
 
         template <typename Time, typename NotifyAction>
-        void CTimer<Time, NotifyAction>::StopTimer()
+        void CTimer<Time, NotifyAction>::stopTimer()
         {
             m_notifyCallback.clear();
 
@@ -77,7 +76,7 @@ namespace GameEngine
         }
 
         template <typename Time, typename NotifyAction>
-        void CTimer<Time, NotifyAction>::StartTimer()
+        void CTimer<Time, NotifyAction>::startTimer()
         {
             while (!m_TimerStop.all())
             {
@@ -92,7 +91,7 @@ namespace GameEngine
         }
 
         template <typename Time, typename NotifyAction>
-        void CTimer<Time, NotifyAction>::NotifyInterval()
+        void CTimer<Time, NotifyAction>::notifyTimeIntervals()
         {
             while (!m_TimerStop.all())
             {
@@ -120,19 +119,19 @@ namespace GameEngine
         }
 
         template <typename Time, typename NotifyAction>
-        uint32_t CTimer<Time, NotifyAction>::ElapseTime(uint32_t time, NotifyAction callback, GameType::shortBool isContinuous)
+        uint32_t CTimer<Time, NotifyAction>::registerForTimerNotification(uint32_t time, NotifyAction callback, GameType::shortBool isContinuous)
         {
-            m_timerId++;
-            m_notifyCallback[m_timerId].isContinuous = isContinuous;
-            m_notifyCallback[m_timerId].timerBackup = time;
-            m_notifyCallback[m_timerId].timerValue = std::move(time);
-            m_notifyCallback[m_timerId].notifyAction = std::move(callback);
+            m_subscriptionId++;
+            m_notifyCallback[m_subscriptionId].isContinuous = isContinuous;
+            m_notifyCallback[m_subscriptionId].timerBackup = time;
+            m_notifyCallback[m_subscriptionId].timerValue = std::move(time);
+            m_notifyCallback[m_subscriptionId].notifyAction = std::move(callback);
 
-            return m_timerId;
+            return m_subscriptionId;
         }
 
         template <typename Time, typename NotifyAction>
-        void CTimer<Time, NotifyAction>::vRemoveTimeTrigger(uint32_t subId)
+        void CTimer<Time, NotifyAction>::unregisterFromTimerNotification(uint32_t subId)
         {
             m_notifyCallback.erase(subId);
         }

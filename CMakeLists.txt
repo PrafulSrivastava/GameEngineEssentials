@@ -15,6 +15,8 @@ set(LIBS pthread sfml-graphics sfml-audio sfml-window sfml-system)
 include_directories(
   ${CMAKE_SOURCE_DIR}/inc
   ${CMAKE_SOURCE_DIR}/inc/Trigger
+  ${CMAKE_SOURCE_DIR}/inc/Controller
+  ${CMAKE_SOURCE_DIR}/inc/Projectile
   ) 
 file(GLOB SOURCES src/*.cpp)
 

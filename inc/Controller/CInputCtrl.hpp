@@ -5,7 +5,7 @@
 #include <functional>
 #include <vector>
 
-namespace GameEngine
+namespace GameEngine::Controller
 {
 
     enum class eKeyBindingType : int32_t
