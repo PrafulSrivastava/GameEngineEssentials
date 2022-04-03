@@ -12,7 +12,10 @@ find_package(SFML 2
 
 set(LIBS pthread sfml-graphics sfml-audio sfml-window sfml-system)
 
-include_directories(inc) 
+include_directories(
+  ${CMAKE_SOURCE_DIR}/inc
+  ${CMAKE_SOURCE_DIR}/inc/Trigger
+  ) 
 file(GLOB SOURCES src/*.cpp)
 
 add_executable(${TARGET} ${SOURCES})

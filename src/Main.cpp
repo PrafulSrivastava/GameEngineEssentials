@@ -6,6 +6,61 @@
 #include "CUtility.hpp"
 #include "CEntityWrapper.hpp"
 #include "CProjectiles.hpp"
+#include "CDistance.hpp"
+#include "CTimer.hpp"
+
+void RotationTesting()
+{
+    auto sharedPtrWindow = std::make_shared<sf::RenderWindow>(
+        sf::VideoMode(800, 600), "RotationTesting");
+
+    GameEngine::CUtility::setWindow(sharedPtrWindow);
+
+    sf::Texture texture;
+    texture.loadFromFile("assets/graphics/Ghost1_00.png");
+    texture.setSmooth(true);
+
+    GameEngine::CEntityWrapper<sf::Sprite> obj;
+    // obj.setOrigin(GameEngine::CUtility::getCentreForShape(obj.getGlobalBounds()));
+
+    obj.setTexture(texture);
+    obj.setScale(0.3f, 0.3f);
+    obj.setPosition(200, 200);
+    GameEngine::CUtility::setOriginToCenter(obj);
+
+    // obj.setOrigin(GameEngine::CUtility::getCentreForShape(obj.getGlobalBounds()));
+
+    sharedPtrWindow->setFramerateLimit(120);
+
+    auto objKb = std::make_unique<GameEngine::CKeyboardCtrl<float>>();
+    float subId = 10;
+
+    objKb->mapKeyToAction(
+        sf::Keyboard::Up, [&](float angle)
+        { obj.rotate(angle); },
+        subId);
+
+    while (sharedPtrWindow->isOpen())
+    {
+        sf::Event event;
+        sharedPtrWindow->clear(sf::Color::Black);
+
+        while (sharedPtrWindow->pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+            {
+                sharedPtrWindow->close();
+            }
+            if (event.type == sf::Event::KeyPressed)
+            {
+                objKb->executeAction(event.key.code);
+            }
+        }
+
+        sharedPtrWindow->draw(obj);
+        sharedPtrWindow->display();
+    }
+}
 
 void spawnBoundry(std::vector<GameEngine::CEntityWrapper<sf::RectangleShape>> &boundry)
 {
@@ -242,9 +297,134 @@ void keyBoardCtrlTest()
     }
 }
 
+void testing1()
+{
+    std::cout << __func__ << std::endl;
+}
+
+void testing2()
+{
+    std::cout << __func__ << std::endl;
+}
+
+void testing3()
+{
+    std::cout << __func__ << std::endl;
+}
+
+void vTimerTesting()
+{
+    using Action = std::function<void()>;
+    auto objTimer = std::make_unique<GameEngine::Trigger::CTimer<std::chrono::seconds, Action>>();
+
+    std::this_thread::sleep_for(std::chrono::seconds(0));
+    objTimer->ElapseTime(2, std::bind(&testing1), 1);
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    objTimer->ElapseTime(1, std::bind(&testing2), 0);
+    std::this_thread::sleep_for(std::chrono::seconds(6));
+    objTimer->ElapseTime(3, std::bind(&testing3), 1);
+
+    std::this_thread::sleep_for(std::chrono::seconds(20));
+    objTimer->StopTimer();
+}
+
+void testing4()
+{
+    std::cout << __func__ << std::endl;
+}
+
+void TriggerTesting()
+{
+    using Action = std::function<void()>;
+
+    auto objMse = std::make_shared<GameEngine::CMouseCtrl>();
+    auto objTimer = std::make_unique<GameEngine::Trigger::CDistance<sf::Sprite, Action>>();
+
+    auto sharedPtrWindow = std::make_shared<sf::RenderWindow>(
+        sf::VideoMode(1000, 1000), "TriggerTesting");
+
+    GameEngine::CUtility::setWindow(sharedPtrWindow);
+
+    sf::Texture texture;
+    texture.loadFromFile("assets/graphics/Ghost1_00.png");
+    texture.setSmooth(true);
+
+    GameEngine::CEntityWrapper<sf::Sprite> sprite;
+    sprite.setTexture(texture);
+    sprite.setScale(0.3f, 0.3f);
+    sprite.setPosition(500, 500);
+    GameEngine::CUtility::setOriginToCenter(sprite);
+
+    auto subId = objMse->subscribeToMouseCtrl(sprite);
+    objMse->lockObjectVisionOnMarker(subId, static_cast<sf::Vector2f>(sf::Mouse::getPosition()));
+
+    auto fptrLeftClick = std::bind(&GameEngine::CMouseCtrl::chaseMarker, objMse, std::placeholders::_1);
+    objMse->mapKeyToAction(sf::Mouse::Left, fptrLeftClick, subId);
+
+    auto fptrRightClick = std::bind(&GameEngine::CMouseCtrl::stopChasingMarker, objMse, std::placeholders::_1);
+    objMse->mapKeyToAction(sf::Mouse::Right, fptrRightClick, subId);
+
+    objMse->freeUpKey(sf::Mouse::Left);
+
+    auto fptrLeftClick2 = std::bind(&GameEngine::CMouseCtrl::lockObjectOnClick, objMse, std::placeholders::_1);
+    objMse->mapKeyToAction(sf::Mouse::Left, fptrLeftClick2, subId);
+
+    auto fptrMiddleClick = std::bind(&GameEngine::CMouseCtrl::unlockObjectOnClick, objMse, std::placeholders::_1);
+    objMse->mapKeyToAction(sf::Mouse::Middle, fptrMiddleClick, subId);
+
+    objTimer->RegisterDistanceNotification(300, 45, 90, sprite, std::bind(&testing4), 0);
+
+    sharedPtrWindow->setFramerateLimit(120);
+    while (sharedPtrWindow->isOpen())
+    {
+        auto posx = sprite.getPosition().x;
+        auto posy = sprite.getPosition().y;
+
+        sf::Event event;
+        sharedPtrWindow->clear(sf::Color::Black);
+
+        while (sharedPtrWindow->pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+            {
+                sharedPtrWindow->close();
+            }
+            if (event.type == sf::Event::MouseButtonPressed)
+            {
+                objMse->executeAction(event.mouseButton.button);
+            }
+        }
+        if (objTimer != nullptr)
+        {
+            objTimer->StartMoving();
+
+            if (objTimer->isDistanceTriggerRegistered().any())
+                sprite.setPosition(++posx, ++posy);
+
+            else
+            {
+                sprite.setPosition(500, 500);
+
+                objTimer->RegisterDistanceNotification(300, 45, 90, sprite, std::bind(&testing4), 0);
+            }
+        }
+
+        objMse->setMarkerPos(subId, static_cast<sf::Vector2f>(sf::Mouse::getPosition()));
+        objMse->runMainLoop();
+
+        sharedPtrWindow->draw(sprite);
+        sharedPtrWindow->display();
+    }
+}
+
 int main(int args, char **argsList)
 {
     srand(time(nullptr));
-    projectileTesting();
+    // projectileTesting();
+    // mouseFunctionTesting();
+    vTimerTesting();
+    // TriggerTesting();
+    // RotationTesting();
+
     return 0;
 }
