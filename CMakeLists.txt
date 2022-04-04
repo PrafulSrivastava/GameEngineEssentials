@@ -17,6 +17,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/inc/Trigger
   ${CMAKE_SOURCE_DIR}/inc/Controller
   ${CMAKE_SOURCE_DIR}/inc/Projectile
+  ${CMAKE_SOURCE_DIR}/inc/Attribute
   ) 
 file(GLOB SOURCES src/*.cpp)
 

@@ -98,18 +98,25 @@ void projectileTesting()
     std::vector<std::function<void(float)>> fptrs;
     std::vector<float> angles;
 
-    bullets.push_back(std::make_shared<GameEngine::Projectile::CProjectile>(6.f, 4, sf::Color::Cyan, 0, sf::Color::Red));
-    bullets[0]->spawn({1, 0, 0, 0, 0, 0, 1, 0, 0, 0}, {200, 300}, 2);
+    bullets.push_back(std::make_shared<GameEngine::Projectile::CProjectile>(15.f, 4, sf::Color::Cyan, 0, sf::Color::Red));
+    bullets[0]->spawn({200, 300}, 2);
+    bullets[0]->setAttribute(GameEngine::Attribute::AttributeTypes::reflects);
+    bullets[0]->setAttribute(GameEngine::Attribute::AttributeTypes::spins);
+    bullets[0]->setAttribute(GameEngine::Attribute::AttributeTypes::fades);
     fptrs.push_back(std::bind(&GameEngine::Projectile::CProjectile::shoot, bullets[0], std::placeholders::_1));
     angles.push_back(rand() % 91);
 
-    bullets.push_back(std::make_shared<GameEngine::Projectile::CProjectile>(10.f, 5, sf::Color::Red, 0, sf::Color::Red));
-    bullets[1]->spawn({1, 0, 0, 0, 0, 0, 0, 0, 1, 0}, {400, 100}, 4);
+    bullets.push_back(std::make_shared<GameEngine::Projectile::CProjectile>(20.f, 5, sf::Color::Red, 0, sf::Color::Red));
+    bullets[1]->spawn({400, 100}, 4);
+    bullets[1]->setAttribute(GameEngine::Attribute::AttributeTypes::reflects);
+    bullets[1]->setAttribute(GameEngine::Attribute::AttributeTypes::shrinks);
     fptrs.push_back(std::bind(&GameEngine::Projectile::CProjectile::shoot, bullets[1], std::placeholders::_1));
     angles.push_back(rand() % 91);
 
-    bullets.push_back(std::make_shared<GameEngine::Projectile::CProjectile>(30.f, 3, sf::Color::Transparent, 0, sf::Color::Red));
-    bullets[2]->spawn({1, 1, 0, 0, 0, 0, 0, 0, 0, 0}, {400, 100}, 6);
+    bullets.push_back(std::make_shared<GameEngine::Projectile::CProjectile>(50.f, 3, sf::Color::Green, 0, sf::Color::Red));
+    bullets[2]->spawn({400, 100}, 6);
+    bullets[2]->setAttribute(GameEngine::Attribute::AttributeTypes::reflects);
+    bullets[2]->setAttribute(GameEngine::Attribute::AttributeTypes::expands);
     fptrs.push_back(std::bind(&GameEngine::Projectile::CProjectile::shoot, bullets[2], std::placeholders::_1));
     angles.push_back(rand() % 91);
 
@@ -134,6 +141,10 @@ void projectileTesting()
             }
             if (event.type == sf::Event::KeyPressed)
             {
+                if (event.key.code == sf::Keyboard::Escape)
+                {
+                    sharedPtrWindow->close();
+                }
                 objKb->executeAction(event.key.code);
             }
         }
@@ -152,7 +163,7 @@ void projectileTesting()
                 }
                 if (side.getGlobalBounds().intersects(bullet->getGlobalBounds()))
                 {
-                    bullet->onCollision(GameEngine::Projectile::ObstructionTypes::reflective, side.getDirectionOfPerpendicular());
+                    bullet->onCollision(GameEngine::Attribute::AttributeTypes::reflects, side.getDirectionOfPerpendicular());
                 }
 
                 sharedPtrWindow->draw(side);

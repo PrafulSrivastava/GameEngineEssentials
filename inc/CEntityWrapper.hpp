@@ -24,7 +24,7 @@ namespace GameEngine
         void setLiveStatus(bool);
         float getDirectionOfPerpendicular();
 
-    private:
+    protected:
         int32_t m_Id{};
         GameType::shortBool m_isActive;
         float m_directionOfPerpendicular;
@@ -46,7 +46,7 @@ namespace GameEngine
     template <typename Entity>
     void CEntityWrapper<Entity>::setLiveStatus(bool status)
     {
-        (status)? m_isActive.set(0): m_isActive.reset(0);
+        (status) ? m_isActive.set(0) : m_isActive.reset(0);
     }
 
     template <typename Entity>

@@ -22,7 +22,7 @@ make -j8
 ```
  Console Output: UP is pressed
 
- ## Mouse Controller:
+## Mouse Controller:
 * Supports one to one mapping of buttons to action.
 * Supports many to one mapping of buttons to action.
 * Usage: 
@@ -34,10 +34,8 @@ make -j8
  mseCtrlPtr->executeAction(sf::Mouse::Left); 
 ```
  Console Output: Left click is pressed
-  ## Projectiles:
-* Supports all shapes(all edges will be of same size).
-* Supports thickness and border color
-* Supports following attributes
+## Attributes:
+* Can be set to any entity derived from CEntityWrapper<Entity>
   * Reflection
   * Disappearing
   * Has a tail
@@ -47,20 +45,36 @@ make -j8
   * Obeying Gravity
   * Enlarging
   * Shrinking
+  * Multiplies
+  * Penetrable
+  * Penetrative
   * Dispersing
-  
+
+## Projectiles:
+* Derived from CEntityWrapper<Entity>
+* Supports all shapes(all edges will be of same size).
+* Supports all attributes
 * Usage: 
 ```cpp
 //Param order {Edge length, Edge count, Color of bullet, Border Width, Color of Border}
 auto projectile = std::make_shared<GameEngine::Projectile::CProjectile>(6.f, 4, sf::Color::Cyan, 2, sf::Color::Red));
-//Param order {bitset of attributes, Position, Velocity}
-//Order of attributes is same as mentioned in description
-//1 is on , 0 is off
+//Param order {Position, Velocity}
 auto objKb = std::make_unique<GameEngine::Controller::CKeyboardCtrl<float>>();
-projectile->spawn({1, 0, 0, 0, 0, 1, 0, 0, 1, 0}, {400, 100}, 5);
+projectile->spawn({400, 100}, 5);
+projectile->setAttribute(GameEngine::Attribute::AttributeTypes::reflects);
+projectile->setAttribute(GameEngine::Attribute::AttributeTypes::spins);
 auto fptr = (std::bind(&GameEngine::Projectile::CProjectile::shoot, projectile, std::placeholders::_1));
 float angleToShootBullet = rand() % 91;
 objKb->mapKeyToAction(sf::Keyboard::Up, fptr, angleToShootBullet);
 ```
- Console Output: A Cyan Bullet of square shape with border size 2 and color Red is shot at "angleToShootBullet" with velocity 5
+ Console Output: 
+ A Bullet 
+* of Cyan color
+* of square shape 
+* with border size 2
+* border color Red
+* shot at "angleToShootBullet" 
+* with velocity 5 
+* that reflects after collision
+* spins while moving
 
