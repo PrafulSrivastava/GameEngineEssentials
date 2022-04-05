@@ -9,6 +9,16 @@ cmake ../
 make -j8
 ```
 
+# Steps to build examples:
+
+```bash
+mkdir build && cd build
+cmake -DEXAMPLE=ON ../
+make -j8
+```
+> All examples will be created in build/example/
+
+
 ## Keyboard Controller:
 * Supports one to one mapping of keys to action.
 * Supports many to one mapping of keys to action.
@@ -20,7 +30,7 @@ make -j8
  kbCtrlPtr->mapKeyToAction(sf::Keyboard::Up, [](){ std::cout<<"UP is pressed"<<std::endl; &tempId}, );
  kbCtrlPtr->executeAction(sf::Keyboard::Up); 
 ```
- Console Output: UP is pressed
+ > Console Output: UP is pressed
 
 ## Mouse Controller:
 * Supports one to one mapping of buttons to action.
@@ -33,7 +43,7 @@ make -j8
  mseCtrlPtr->mapKeyToAction(sf::Mouse::Left, [](){ std::cout << "Left click is pressed" << std::endl; }, &tempVal);
  mseCtrlPtr->executeAction(sf::Mouse::Left); 
 ```
- Console Output: Left click is pressed
+ > Console Output: Left click is pressed
 ## Attributes:
 * Can be set to any entity derived from CEntityWrapper<Entity>
   * Reflection
@@ -67,14 +77,14 @@ auto fptr = (std::bind(&GameEngine::Projectile::CProjectile::shoot, projectile, 
 float angleToShootBullet = rand() % 91;
 objKb->mapKeyToAction(sf::Keyboard::Up, fptr, angleToShootBullet);
 ```
- Console Output: 
- A Bullet 
-* of Cyan color
-* of square shape 
-* with border size 2
-* border color Red
-* shot at "angleToShootBullet" 
-* with velocity 5 
-* that reflects after collision
-* spins while moving
+ > Console Output: 
+ > A Bullet 
+ > * of Cyan color
+ > * of square shape 
+ > * with border size 2
+ > * border color Red
+ > * shot at "angleToShootBullet" 
+ > * with velocity 5 
+ > * that reflects after collision
+ > * spins while moving
 

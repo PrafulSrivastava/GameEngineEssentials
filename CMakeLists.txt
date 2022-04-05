@@ -10,6 +10,9 @@ find_package(SFML 2
   COMPONENTS 
     system window graphics network audio REQUIRED)
 
+
+option(EXAMPLE "Build Mock Applications." OFF)
+
 set(LIBS pthread sfml-graphics sfml-audio sfml-window sfml-system)
 
 include_directories(
@@ -18,8 +21,13 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/inc/Controller
   ${CMAKE_SOURCE_DIR}/inc/Projectile
   ${CMAKE_SOURCE_DIR}/inc/Attribute
+  ${CMAKE_SOURCE_DIR}/inc/Common
   ) 
 file(GLOB SOURCES src/*.cpp)
+
+if(EXAMPLE)
+    add_subdirectory(example)
+endif(EXAMPLE)
 
 add_executable(${TARGET} ${SOURCES})
 target_link_libraries(${TARGET} ${LIBS})

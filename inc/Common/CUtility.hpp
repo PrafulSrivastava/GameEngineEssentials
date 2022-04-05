@@ -21,12 +21,6 @@ namespace GameEngine
     };
 
     const double Pi = std::acos(-1);
-    struct Component
-    {
-        Component(float x, float y, float z) : xComponent(x), yComponent(y), zComponent(z) {}
-        Component() {}
-        float xComponent, yComponent, zComponent;
-    };
 
     class CUtility
     {
@@ -39,7 +33,6 @@ namespace GameEngine
         CUtility &operator=(CUtility &&) = delete;
 
         static void setWindow(std::shared_ptr<sf::RenderWindow>);
-        static void setOriginToCenter(sf::Sprite &);
         static sf::Vector2f getCentreForShape(sf::FloatRect);
         static sf::Vector2f getMouseCoordinatesWrtWindow();
         static sf::Vector2f getTransformationRatioForWindow();
@@ -56,9 +49,9 @@ namespace GameEngine
         static float radsToDeg(float);
         static eQuadrantType getQuadrantAfterReflection(float, float);
         static float getAngleForQuadrant(float, eQuadrantType);
-        static Component getComponent(float Magnitude, float thetaXY, float thetaZ, Component origin);
+        static sf::Vector3f getResultantPosition(float Magnitude, float thetaXY, float thetaZ, sf::Vector3f origin);
         static bool compareApproximately(float, float);
-        static bool comparePoints(sf::Vector2f P1, sf::Vector2f P2);
+        static bool compareApproximately(sf::Vector2f, sf::Vector2f);
 
     private:
         static int32_t globalElementCount;
@@ -71,12 +64,6 @@ namespace GameEngine
     void CUtility::setWindow(std::shared_ptr<sf::RenderWindow> win)
     {
         window = win;
-    }
-
-    void CUtility::setOriginToCenter(sf::Sprite &sprite)
-    {
-        sf::FloatRect gb = sprite.getLocalBounds();
-        sprite.setOrigin(gb.width / 2, gb.height / 2);
     }
 
     sf::Vector2f CUtility::getCentreForShape(sf::FloatRect gb)
@@ -213,9 +200,9 @@ namespace GameEngine
         }
     }
 
-    Component CUtility::getComponent(float Magnitude, float thetaXY, float thetaZ, Component origin = Component(0, 0, 0))
+    sf::Vector3f CUtility::getResultantPosition(float Magnitude, float thetaXY, float thetaZ, sf::Vector3f origin = {0, 0, 0})
     {
-        return Component(Magnitude * sin(degToRads(thetaZ)) * cos(degToRads(thetaXY)) + origin.xComponent, Magnitude * sin(degToRads(thetaZ)) * sin(degToRads(thetaXY)) + origin.yComponent, Magnitude * cos(degToRads(thetaZ)) + origin.zComponent);
+        return {Magnitude * sin(degToRads(thetaZ)) * cos(degToRads(thetaXY)) + origin.x, Magnitude * sin(degToRads(thetaZ)) * sin(degToRads(thetaXY)) + origin.y, Magnitude * cos(degToRads(thetaZ)) + origin.z};
     }
 
     bool CUtility::compareApproximately(float p1, float p2)
@@ -223,10 +210,11 @@ namespace GameEngine
         return abs(ceil(p2) - ceil(p1)) <= Utility::ComparisonThreshold;
     }
 
-    bool CUtility::comparePoints(sf::Vector2f P1, sf::Vector2f P2)
+    bool CUtility::compareApproximately(sf::Vector2f p1, sf::Vector2f p2)
     {
-        return P1.x == P2.x && P1.y == P2.y;
+        return compareApproximately(p1.x, p2.x) and compareApproximately(p1.y, p2.y);
     }
+
 }
 
 #endif
