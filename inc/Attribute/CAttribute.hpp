@@ -61,13 +61,13 @@ namespace GameEngine::Attribute
         if (m_attributeBitSet[static_cast<uint8_t>(AttributeTypes::fades)])
         {
             auto color = entity.getFillColor();
-            if (color.a == 0)
+            if (color.a == 3)
             {
                 entity.setLiveStatus(false);
             }
             else
             {
-                color.a--;
+                color.a -= 4;
                 entity.setFillColor(color);
             }
         }

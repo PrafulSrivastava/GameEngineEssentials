@@ -7,6 +7,7 @@
 #include <math.h>
 #include "CInputCtrl.hpp"
 #include "Globals.hpp"
+#include <random>
 
 namespace GameEngine
 {
@@ -52,6 +53,8 @@ namespace GameEngine
         static sf::Vector3f getResultantPosition(float Magnitude, float thetaXY, float thetaZ, sf::Vector3f origin);
         static bool compareApproximately(float, float);
         static bool compareApproximately(sf::Vector2f, sf::Vector2f);
+        static float getRandomNumber(float, float);
+        static sf::Vector2f addVectors(sf::Vector2f p1, sf::Vector2f p2);
 
     private:
         static int32_t globalElementCount;
@@ -213,6 +216,20 @@ namespace GameEngine
     bool CUtility::compareApproximately(sf::Vector2f p1, sf::Vector2f p2)
     {
         return compareApproximately(p1.x, p2.x) and compareApproximately(p1.y, p2.y);
+    }
+
+    sf::Vector2f CUtility::addVectors(sf::Vector2f p1, sf::Vector2f p2)
+    {
+        return sf::Vector2f(p1.x + p2.x, p1.y + p2.y);
+    }
+
+    float CUtility::getRandomNumber(float low, float high)
+    {
+        std::random_device rd;  // Will be used to obtain a seed for the random number engine
+        std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
+        std::uniform_int_distribution<int64_t> dis(low, high);
+
+        return dis(gen);
     }
 
 }

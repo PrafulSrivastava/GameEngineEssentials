@@ -31,6 +31,20 @@ namespace GameEngine
         constexpr auto TimeInterval = 1;
     }
 
+    namespace Particle
+    {
+        constexpr auto MAX_PARTICLES = 10000;
+        constexpr auto MIN_PARTICLE_SIZE = 20;
+        constexpr auto MIN_PARTICLE_VELOCITY = 1;
+        constexpr auto MAX_PARTICLE_VELOCITY = 100;
+        constexpr auto MIN_SIDES = 3;
+        constexpr auto MAX_SIDES = 6;
+        constexpr auto EXPLOSION_LEVEL = 2; // 1 - max velocity
+
+        constexpr auto MIN_DIM = 1;
+        constexpr auto MAX_DIM = 1000;
+    }
+
 }
 
 #endif

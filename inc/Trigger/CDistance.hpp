@@ -7,6 +7,7 @@
 
 namespace GameEngine::Trigger
 {
+    constexpr auto InvalidIndex = -1;
     template <typename Entity, typename NotifyAction>
     class CDistance
     {
@@ -33,9 +34,12 @@ namespace GameEngine::Trigger
         [[nodiscard]] uint32_t registerForDistanceNotification(GameType::Distance, GameType::Distance, GameType::Distance, CEntityWrapper<Entity> &, NotifyAction, GameType::shortBool);
         void unregisterFromDistanceNotification(uint32_t);
         void monitorDistance();
+        int32_t getIndexOfKey(int32_t);
 
     private:
+        int32_t m_subId{0};
         std::vector<DistanceInfo> m_NotifyActions;
+        std::vector<int32_t> m_listsubIds;
         std::vector<std::reference_wrapper<CEntityWrapper<Entity>>> m_listRegistered;
         std::vector<sf::Vector2f> m_prevPosition;
     };
@@ -50,15 +54,38 @@ namespace GameEngine::Trigger
         m_prevPosition.push_back(obj.getPosition());
         m_listRegistered.push_back(obj);
 
-        return m_listRegistered.size() - 1;
+        m_subId++;
+        m_listsubIds.push_back(m_subId);
+
+        return m_subId;
     }
 
     template <typename Entity, typename NotifyAction>
     void CDistance<Entity, NotifyAction>::unregisterFromDistanceNotification(uint32_t subId)
     {
-        m_prevPosition.erase(m_prevPosition.begin() + subId);
-        m_listRegistered.erase(m_listRegistered.begin() + subId);
-        m_NotifyActions.erase(m_NotifyActions.begin() + subId);
+        auto index = getIndexOfKey(subId);
+
+        if (index != InvalidIndex)
+        {
+            m_prevPosition.erase(m_prevPosition.begin() + index);
+            m_listRegistered.erase(m_listRegistered.begin() + index);
+            m_NotifyActions.erase(m_NotifyActions.begin() + index);
+            m_listsubIds.erase(m_listsubIds.begin() + index);
+        }
+    }
+
+    template <typename Entity, typename NotifyAction>
+    int32_t CDistance<Entity, NotifyAction>::getIndexOfKey(int32_t subId)
+    {
+        auto itr = std::find(m_listsubIds.cbegin(), m_listsubIds.cend(), subId);
+        if (itr != m_listsubIds.cend())
+        {
+            return std::distance(m_listsubIds.cbegin(), itr);
+        }
+        else
+        {
+            return InvalidIndex;
+        }
     }
 
     template <typename Entity, typename NotifyAction>
@@ -68,6 +95,7 @@ namespace GameEngine::Trigger
         {
             if (m_prevPosition[i] != m_listRegistered[i].get().getPosition())
             {
+
                 if (CUtility::compareApproximately(m_listRegistered[i].get().getPosition(), {m_NotifyActions[i].component.x, m_NotifyActions[i].component.y}))
                 {
                     m_NotifyActions[i].notifyAction();

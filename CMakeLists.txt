@@ -22,6 +22,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/inc/Projectile
   ${CMAKE_SOURCE_DIR}/inc/Attribute
   ${CMAKE_SOURCE_DIR}/inc/Common
+  ${CMAKE_SOURCE_DIR}/inc/Particle
   ) 
 file(GLOB SOURCES src/*.cpp)
 
